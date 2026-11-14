@@ -2,6 +2,7 @@
  * Renders the fictional demo documents into public/samples/ as real PDFs:
  *   - riverside-bill.pdf  (itemized hospital statement)
  *   - summit-eob.pdf      (insurer's Explanation of Benefits)
+ *   - lakeshore-anesthesia-bill.pdf + summit-eob-anesthesia.pdf (second case: out-of-network anesthesia)
  * Run: npm run samples
  *
  * The numbers come from src/lib/sample-data.ts so the PDFs, the unit tests and the live demo agree.
@@ -9,7 +10,7 @@
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { PDFDocument, PDFFont, PDFPage, StandardFonts, degrees, rgb } from "pdf-lib";
-import { sampleBill, sampleEob } from "../src/lib/sample-data";
+import { sampleBill, sampleEob, surpriseBill, surpriseEob } from "../src/lib/sample-data";
 
 const INK = rgb(0.12, 0.13, 0.15);
 const MUTED = rgb(0.42, 0.45, 0.5);
@@ -208,11 +209,152 @@ async function makeEob() {
   return pdf.save();
 }
 
+async function makeSurpriseBill() {
+  const pdf = await PDFDocument.create();
+  pdf.setTitle("Lakeshore Anesthesia Associates — Statement (SAMPLE)");
+  const page = pdf.addPage([612, 792]);
+  const c: Ctx = { page, font: await pdf.embedFont(StandardFonts.Helvetica), bold: await pdf.embedFont(StandardFonts.HelveticaBold) };
+  const b = surpriseBill;
+  const l = b.lines[0];
+
+  text(c, "Lakeshore Anesthesia Associates, P.C.", 40, 740, 17, { bold: true });
+  text(c, "PO Box 22871, Columbus, OH 43222  ·  Billing (614) 555-0177  ·  Tax ID 31-0000000", 40, 724, 8.5, { color: MUTED });
+  text(c, "STATEMENT", 572, 742, 12, { bold: true, right: true });
+
+  const box = (label: string, value: string, x: number, y: number) => {
+    text(c, label, x, y, 7.5, { color: MUTED });
+    text(c, value, x, y - 12, 10, { bold: true });
+  };
+  box("Responsible party", "Marcus Reed", 40, 690);
+  box("Patient", "Marcus Reed", 170, 690);
+  box("Account number", "LAA-2208830", 290, 690);
+  box("Statement date", us(b.statementDate!), 410, 690);
+  box("Due date", us(b.dueDate!), 500, 690);
+  text(c, "Mailing address: 915 Birchwood Ct, Dublin, OH 43017", 40, 656, 8, { color: MUTED });
+  text(c, "Place of service: Riverside General Hospital, Main OR  ·  Surgeon: Dr. A. Patel  ·  Insurance: Summit Health Plan", 40, 644, 8, { color: MUTED });
+
+  let y = 612;
+  text(c, "SERVICES", 40, y, 9, { bold: true });
+  y -= 18;
+  page.drawRectangle({ x: 40, y: y - 4, width: 532, height: 16, color: BAND });
+  const cols = { date: 46, code: 112, desc: 170, amt: 566 };
+  text(c, "Date of service", cols.date, y, 8, { bold: true });
+  text(c, "CPT", cols.code, y, 8, { bold: true });
+  text(c, "Description", cols.desc, y, 8, { bold: true });
+  text(c, "Charges", cols.amt, y, 8, { bold: true, right: true });
+  y -= 20;
+  text(c, us(l.serviceDate!), cols.date, y);
+  text(c, l.code!, cols.code, y);
+  text(c, "Anesthesia, intraperitoneal procedure, lower abdomen", cols.desc, y);
+  text(c, money(l.billedAmount), cols.amt, y, 9, { right: true });
+  y -= 12;
+  text(c, "(laparoscopic appendectomy) · 98 min · 6 base + 7 time units", cols.desc, y, 8, { color: MUTED });
+  y -= 8;
+  hr(c, y);
+
+  y -= 30;
+  const rows: [string, string][] = [
+    ["Total charges", money(b.totalCharges!)],
+    ["Summit Health Plan payment (10/02/2026)", money(-b.insurancePaid!)],
+    ["Adjustments", money(b.adjustments!)],
+  ];
+  for (const [k, v] of rows) {
+    text(c, k, cols.desc, y, 9);
+    text(c, v, cols.amt, y, 9, { right: true });
+    y -= 16;
+  }
+
+  y -= 34;
+  page.drawRectangle({ x: 352, y: y - 14, width: 220, height: 40, color: rgb(0.99, 0.94, 0.92), borderColor: LINE, borderWidth: 0.7 });
+  text(c, "AMOUNT DUE", 362, y + 10, 8, { bold: true, color: MUTED });
+  text(c, `$${money(b.patientBalance)}`, 562, y - 4, 16, { bold: true, right: true });
+  text(c, "Lakeshore Anesthesia Associates does not participate in your plan's network.", 40, y + 4, 8, { color: MUTED });
+  text(c, "The balance after your insurer's payment is your responsibility. Pay online or call us.", 40, y - 8, 8, { color: MUTED });
+
+  watermark(c);
+  return pdf.save();
+}
+
+async function makeSurpriseEob() {
+  const pdf = await PDFDocument.create();
+  pdf.setTitle("Summit Health Plan — Explanation of Benefits, anesthesia (SAMPLE)");
+  const page = pdf.addPage([792, 612]);
+  const c: Ctx = { page, font: await pdf.embedFont(StandardFonts.Helvetica), bold: await pdf.embedFont(StandardFonts.HelveticaBold) };
+  const e = surpriseEob;
+  const l = e.lines[0];
+
+  text(c, "Summit Health Plan", 40, 562, 18, { bold: true });
+  text(c, "Explanation of Benefits", 40, 545, 11);
+  page.drawRectangle({ x: 560, y: 540, width: 192, height: 30, color: rgb(1, 0.95, 0.85) });
+  text(c, "THIS IS NOT A BILL", 742, 551, 12, { bold: true, right: true });
+  const info: [string, string][] = [
+    ["Member", "Marcus Reed"],
+    ["Member ID", "XQH 77310455"],
+    ["Patient", "Marcus Reed"],
+    ["Group", "Brightline Logistics - PPO 2000"],
+    ["Claim number", "2026-0822-5517"],
+    ["Provider", "Lakeshore Anesthesia Associates (OUT-OF-NETWORK)"],
+    ["Processed", "09/30/2026"],
+  ];
+  info.forEach(([k, v], i) => {
+    const x = i < 4 ? 40 : 400;
+    const yy = 515 - (i % 4) * 15;
+    text(c, `${k}:`, x, yy, 8.5, { color: MUTED });
+    text(c, v, x + 80, yy, 8.5, { bold: true });
+  });
+
+  let y = 435;
+  page.drawRectangle({ x: 40, y: y - 6, width: 712, height: 28, color: BAND });
+  const cols = [
+    { x: 46, h: ["Date of", "service"] },
+    { x: 104, h: ["Service", "code"] },
+    { x: 152, h: ["Description", ""] },
+    { x: 390, h: ["Amount", "billed"], r: true },
+    { x: 455, h: ["Allowed", "amount"], r: true },
+    { x: 520, h: ["Plan", "paid"], r: true },
+    { x: 585, h: ["Applied to", "deductible"], r: true },
+    { x: 640, h: ["Coins.", "(40%)"], r: true },
+    { x: 700, h: ["Your", "responsibility"], r: true },
+    { x: 748, h: ["Remark", ""], r: true },
+  ];
+  for (const col of cols) {
+    text(c, col.h[0], col.x, y + 8, 7.5, { bold: true, right: col.r });
+    if (col.h[1]) text(c, col.h[1], col.x, y - 2, 7.5, { bold: true, right: col.r });
+  }
+  y -= 24;
+  const vals = [
+    us(l.serviceDate!), l.code!, "Anesthesia, lower abdomen (out-of-network)", money(l.billedAmount!), money(l.allowedAmount!),
+    money(l.planPaid!), money(l.deductible!), money(l.coinsurance!), money(l.patientResponsibility), l.remarkCodes.join(","),
+  ];
+  vals.forEach((v, i) => text(c, v, cols[i].x, y, 9, { right: cols[i].r }));
+  y -= 6;
+  hr(c, y, 40, 752);
+
+  y -= 40;
+  page.drawRectangle({ x: 470, y: y - 16, width: 282, height: 40, color: rgb(0.93, 0.97, 0.95), borderColor: LINE, borderWidth: 0.7 });
+  text(c, "WHAT YOU OWE THE PROVIDER", 480, y + 10, 8, { bold: true, color: MUTED });
+  text(c, `$${money(e.totalPatientResponsibility)}`, 742, y - 6, 16, { bold: true, right: true });
+  text(c, "Remark OON2: Provider is not in your network. Out-of-network coinsurance (40%) applied.", 40, y + 6, 8.5);
+  text(c, "An out-of-network provider may bill you for charges above the allowed amount,", 40, y - 8, 8.5);
+  text(c, "except where federal or state law protects you from balance billing.", 40, y - 20, 8.5);
+
+  y -= 54;
+  text(c, "YOUR PLAN (PPO 2000)", 40, y, 9, { bold: true });
+  text(c, "In-network coinsurance: 20%   Out-of-network coinsurance: 40%   Deductible met for 2026: Yes", 40, y - 14, 8.5);
+  text(c, "If you disagree with how this claim was processed, you can appeal within 180 days of receiving this notice.", 40, y - 32, 8.5, { color: MUTED });
+  text(c, "Summit Health Plan · Member Services (800) 555-0199 · P.O. Box 4410, Dayton, OH 45401", 40, y - 46, 8.5, { color: MUTED });
+
+  watermark(c);
+  return pdf.save();
+}
+
 async function main() {
   mkdirSync("public/samples", { recursive: true });
   writeFileSync("public/samples/riverside-bill.pdf", await makeBill());
   writeFileSync("public/samples/summit-eob.pdf", await makeEob());
-  console.log("Wrote public/samples/riverside-bill.pdf and summit-eob.pdf");
+  writeFileSync("public/samples/lakeshore-anesthesia-bill.pdf", await makeSurpriseBill());
+  writeFileSync("public/samples/summit-eob-anesthesia.pdf", await makeSurpriseEob());
+  console.log("Wrote 4 sample PDFs to public/samples/");
 }
 
 main();

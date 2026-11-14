@@ -5,7 +5,7 @@ import type { Rule } from "./types";
 const MIN_GAP = 1;
 
 /** BILL_EXCEEDS_EOB: the bill asks for more than the EOB says you owe. */
-export const billExceedsEob: Rule = ({ bill, eobs, eobTotal, matches }) => {
+export const billExceedsEob: Rule = ({ bill, eobs, eobLines, eobTotal, matches }) => {
   if (eobs.length === 0) return [];
   const anyMatch = matches.some((m) => m.eobLineId);
   if (!anyMatch && bill.isItemized && bill.lines.length > 0) return []; // probably a different claim
@@ -17,7 +17,10 @@ export const billExceedsEob: Rule = ({ bill, eobs, eobTotal, matches }) => {
       title: "Your bill is higher than what your EOB says you owe",
       explanation:
         `The bill asks for ${usd(bill.patientBalance)}, but your insurer's EOB lists your responsibility as ${usd(eobTotal)}. ` +
-        `For an in-network claim, you generally shouldn't pay more than the EOB amount. Ask the billing office to explain or correct the difference.`,
+        (eobLines.length > 0 && eobLines.every((l) => l.networkStatus === "out")
+          ? "Out-of-network providers can sometimes bill the difference, but not for emergency care or for anesthesia, radiology, labs " +
+            "and assistant surgeons at an in-network facility (No Surprises Act). Ask the billing office to explain or correct the difference."
+          : "For an in-network claim, you generally shouldn't pay more than the EOB amount. Ask the billing office to explain or correct the difference."),
       billLineIds: [],
       eobLineIds: eobs.flatMap((e) => e.lines.map((l) => l.id)),
       amountAtStake: gap,

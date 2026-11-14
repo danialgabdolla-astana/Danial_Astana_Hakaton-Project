@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { runRules, disputableTotal } from "@/lib/rules";
-import { sampleBill, sampleEob } from "@/lib/sample-data";
+import { sampleBill, sampleEob, surpriseBill, surpriseEob } from "@/lib/sample-data";
 import type { BillDoc, EobDoc, EobLine, Flag } from "@/lib/schemas";
 
 const clone = <T>(x: T): T => JSON.parse(JSON.stringify(x));
@@ -62,6 +62,40 @@ describe("sample case (Riverside General ER visit)", () => {
 
   it("raises no false alarms on the sample", () => {
     for (const r of ["NO_INSURANCE_APPLIED", "BALANCE_BILLING_IN_NETWORK", "POSSIBLE_SURPRISE_BILL", "NOT_ITEMIZED"] as const) {
+      expect(byRule(flags, r)).toHaveLength(0);
+    }
+  });
+});
+
+describe("sample case 2 (out-of-network anesthesia)", () => {
+  const { flags, summary } = runRules(surpriseBill, [surpriseEob]);
+
+  it("flags the $2,200 balance bill above the EOB", () => {
+    const f = byRule(flags, "BILL_EXCEEDS_EOB");
+    expect(f).toHaveLength(1);
+    expect(f[0].amountAtStake).toBe(2200);
+    expect(f[0].explanation).toMatch(/No Surprises Act/);
+  });
+
+  it("flags a possible surprise bill even without the facility's claim on the EOB", () => {
+    const f = byRule(flags, "POSSIBLE_SURPRISE_BILL");
+    expect(f).toHaveLength(1);
+    expect(f[0].confidence).toBe("low");
+    expect(f[0].explanation).toMatch(/in-network hospital or surgery center/);
+  });
+
+  it("says the patient may be overcharged $2,200", () => {
+    expect(summary.disputableTotal).toBe(2200);
+  });
+
+  it("with 20% in-network coinsurance, the surprise-bill excess is $280", () => {
+    const f = byRule(runRules(surpriseBill, [surpriseEob], { coinsurancePct: 20 }).flags, "POSSIBLE_SURPRISE_BILL");
+    expect(f[0].amountAtStake).toBe(280);
+    expect(f[0].confidence).toBe("medium");
+  });
+
+  it("raises no unrelated flags", () => {
+    for (const r of ["DUPLICATE_CHARGE", "LINE_NOT_ON_EOB", "NO_INSURANCE_APPLIED", "BALANCE_BILLING_IN_NETWORK", "NOT_ITEMIZED", "POSSIBLE_UNBUNDLING"] as const) {
       expect(byRule(flags, r)).toHaveLength(0);
     }
   });
@@ -206,6 +240,11 @@ describe("POSSIBLE_SURPRISE_BILL", () => {
   it("flags out-of-network emergency care even without an in-network facility", () => {
     const e = eob([eobLine({ id: "E1", code: "99285", description: "ER visit level 5", patientResponsibility: 1500, networkStatus: "out" })]);
     expect(byRule(runRules(bill({ patientBalance: 1500, isItemized: false }), [e]).flags, "POSSIBLE_SURPRISE_BILL")).toHaveLength(1);
+  });
+
+  it("does not flag out-of-network radiology when no in-network facility is known", () => {
+    const e = eob([eobLine({ id: "E1", code: "71046", description: "Chest x-ray", networkStatus: "out", patientResponsibility: 300 })]);
+    expect(byRule(runRules(bill({ patientBalance: 300, isItemized: false }), [e]).flags, "POSSIBLE_SURPRISE_BILL")).toHaveLength(0);
   });
 
   it("does not flag an out-of-network office visit", () => {

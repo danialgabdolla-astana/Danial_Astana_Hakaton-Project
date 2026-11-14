@@ -53,3 +53,42 @@ export const sampleEob: EobDoc = {
   ],
   totalPatientResponsibility: 1195,
 };
+
+/**
+ * Second demo case: a "surprise" anesthesia bill. Laparoscopic appendectomy on 2026-08-22 at an in-network
+ * hospital; the anesthesiologist group is out-of-network. The insurer applied out-of-network coinsurance (40%)
+ * and the group billed the patient for everything the plan didn't pay ("balance billing").
+ */
+export const SURPRISE_DATE = "2026-08-22";
+
+export const surpriseBill: BillDoc = {
+  providerName: "Lakeshore Anesthesia Associates",
+  accountRef: "****8830",
+  statementDate: "2026-10-09",
+  dueDate: "2026-11-08",
+  isItemized: true,
+  lines: [
+    {
+      id: "B1", serviceDate: SURPRISE_DATE, code: "00840", codeType: "CPT",
+      description: "Anesthesia, intraperitoneal procedure, lower abdomen (laparoscopic appendectomy)", quantity: 1, billedAmount: 3600,
+    },
+  ],
+  totalCharges: 3600,
+  insurancePaid: 840,
+  adjustments: 0,
+  patientBalance: 2760,
+};
+
+export const surpriseEob: EobDoc = {
+  insurerName: "Summit Health Plan",
+  claimRef: "****5517",
+  providerName: "Lakeshore Anesthesia Associates",
+  lines: [
+    {
+      id: "E1", serviceDate: SURPRISE_DATE, code: "00840", description: "Anesthesia, intraperitoneal procedure, lower abdomen",
+      billedAmount: 3600, allowedAmount: 1400, planPaid: 840, deductible: 0, copay: 0, coinsurance: 560, notCovered: 0,
+      patientResponsibility: 560, remarkCodes: ["OON2"], networkStatus: "out",
+    },
+  ],
+  totalPatientResponsibility: 560,
+};

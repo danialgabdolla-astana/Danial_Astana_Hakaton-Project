@@ -53,7 +53,10 @@ export const possibleSurpriseBill: Rule = ({ eobLines, context }) => {
     if (l.networkStatus !== "out") continue;
     const emergency = isEmergency(l);
     const kind = ancillaryKind(l);
-    if (!emergency && !(kind && anyInNetwork)) continue;
+    // Anesthesia and assistant surgeons almost always work inside a hospital or surgery center, so they're worth
+    // flagging even when the facility's own claim isn't on this EOB. Radiology and labs can be freestanding.
+    const facilityBased = kind === "anesthesia" || kind === "assistant surgeon";
+    if (!emergency && !(kind && (anyInNetwork || facilityBased))) continue;
 
     let amount = l.patientResponsibility;
     let confidence: "medium" | "low" = "low";
@@ -62,12 +65,16 @@ export const possibleSurpriseBill: Rule = ({ eobLines, context }) => {
       amount = Math.max(0, l.patientResponsibility - inNetworkShare);
       confidence = "medium";
     }
+    const facilityKnown = emergency || anyInNetwork;
     const what = emergency ? "emergency care" : `${kind} at an in-network facility`;
     flags.push({
       ruleId: "POSSIBLE_SURPRISE_BILL",
       title: `Possible surprise bill: out-of-network ${emergency ? "emergency care" : kind}`,
       explanation:
-        `Your EOB marks this as out-of-network ${what}. Under the federal No Surprises Act, you may only owe what you'd pay in-network. ` +
+        (facilityKnown
+          ? `Your EOB marks this as out-of-network ${what}. Under the federal No Surprises Act, you may only owe what you'd pay in-network. `
+          : `Your EOB marks this ${kind} as out-of-network. If it was given at an in-network hospital or surgery center, the federal ` +
+            "No Surprises Act says you only owe in-network cost-sharing and the provider can't bill you the rest. ") +
         "Learn more at cms.gov/nosurprises." +
         (confidence === "low" ? " We don't know your in-network cost-sharing, so we show the full amount." : ""),
       billLineIds: [],
