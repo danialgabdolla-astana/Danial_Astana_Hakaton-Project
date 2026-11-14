@@ -1,0 +1,108 @@
+{
+ "analysisId": "1241e7fc701840e85734123d",
+ "createdAt": "2026-11-15T00:00:00.000Z",
+ "bill": {
+  "providerName": "Lakeshore Anesthesia Associates",
+  "accountRef": "****8830",
+  "statementDate": "2026-10-09",
+  "dueDate": "2026-11-08",
+  "isItemized": true,
+  "lines": [
+   {
+    "id": "B1",
+    "serviceDate": "2026-08-22",
+    "code": "00840",
+    "codeType": "CPT",
+    "description": "Anesthesia, intraperitoneal procedure, lower abdomen (laparoscopic appendectomy)",
+    "quantity": 1,
+    "billedAmount": 3600
+   }
+  ],
+  "totalCharges": 3600,
+  "insurancePaid": 840,
+  "adjustments": 0,
+  "patientBalance": 2760
+ },
+ "eobs": [
+  {
+   "insurerName": "Summit Health Plan",
+   "claimRef": "****5517",
+   "providerName": "Lakeshore Anesthesia Associates",
+   "lines": [
+    {
+     "id": "E1",
+     "serviceDate": "2026-08-22",
+     "code": "00840",
+     "description": "Anesthesia, intraperitoneal procedure, lower abdomen",
+     "billedAmount": 3600,
+     "allowedAmount": 1400,
+     "planPaid": 840,
+     "deductible": 0,
+     "copay": 0,
+     "coinsurance": 560,
+     "notCovered": 0,
+     "patientResponsibility": 560,
+     "remarkCodes": [
+      "OON2"
+     ],
+     "networkStatus": "out"
+    }
+   ],
+   "totalPatientResponsibility": 560
+  }
+ ],
+ "context": {},
+ "matches": [
+  {
+   "billLineId": "B1",
+   "eobLineId": "E1"
+  }
+ ],
+ "flags": [
+  {
+   "ruleId": "BILL_EXCEEDS_EOB",
+   "title": "Your bill is higher than what your EOB says you owe",
+   "explanation": "The bill asks for $2,760.00, but your insurer's EOB lists your responsibility as $560.00. Out-of-network providers can sometimes bill the difference, but not for emergency care or for anesthesia, radiology, labs and assistant surgeons at an in-network facility (No Surprises Act). Ask the billing office to explain or correct the difference.",
+   "billLineIds": [],
+   "eobLineIds": [
+    "E1"
+   ],
+   "amountAtStake": 2200,
+   "confidence": "high",
+   "source": "EOB total vs. bill balance",
+   "params": {
+    "balance": 2760,
+    "eobTotal": 560,
+    "allOut": true
+   },
+   "id": "F1"
+  },
+  {
+   "ruleId": "POSSIBLE_SURPRISE_BILL",
+   "title": "Possible surprise bill: out-of-network anesthesia",
+   "explanation": "Your EOB marks this anesthesia as out-of-network. If it was given at an in-network hospital or surgery center, the federal No Surprises Act says you only owe in-network cost-sharing and the provider can't bill you the rest. Learn more at cms.gov/nosurprises. We don't know your in-network cost-sharing, so we show the full amount.",
+   "billLineIds": [],
+   "eobLineIds": [
+    "E1"
+   ],
+   "amountAtStake": 560,
+   "confidence": "low",
+   "source": "EOB line E1 (out-of-network)",
+   "params": {
+    "emergency": false,
+    "kind": "anesthesia",
+    "facilityKnown": false,
+    "estimated": false,
+    "eobLine": "E1"
+   },
+   "id": "F2"
+  }
+ ],
+ "summary": {
+  "issueCount": 2,
+  "disputableTotal": 2200,
+  "billBalance": 2760,
+  "eobPatientResponsibility": 560
+ },
+ "sample": "anesthesia"
+}

@@ -123,6 +123,7 @@ export const en = {
     lede: "Add both documents. We read every line, match the bill to what your insurer processed, and show you exactly what to question — free. No sign-up.",
   },
   uploader: {
+    sampleLive: "Or run the ER sample live through the AI pipeline (~20 s).",
     steps: ["Reading your bill…", "Reading your EOB…", "Matching bill lines to your EOB…", "Checking 8 billing rules…", "Adding up what you can dispute…"],
     wait: "This usually takes 20–60 seconds. Your files are processed in memory and never stored.",
     billTitle: "1. Your itemized bill",
@@ -223,6 +224,8 @@ export const en = {
     demoPost: ", any future date, any CVC and any ZIP. No real money is charged.",
   },
   pack: {
+    sampleUnlocked: "Sample — unlocked for demo",
+    sampleNote: "Real bills unlock for $19 (Stripe test mode in this demo).",
     unlocked: "✓ Unlocked",
     readyTitle: "Your dispute pack is ready to write",
     readyBody: "We’ll write a letter and a phone script using only the issues found above — no new claims.",
@@ -264,6 +267,8 @@ export const en = {
     nsa: { title: "No Surprises Act help", detail: "Questions or complaints: cms.gov/nosurprises or 1-800-985-3059." },
   },
   tracker: {
+    sampleBadge: "Sample",
+    loadSample: "Load a sample dispute",
     title: "My disputes",
     lede: "Billing disputes usually take a few calls over several weeks. Keep every call, reference number and follow-up date in one place.",
     saved: "You’ve saved",

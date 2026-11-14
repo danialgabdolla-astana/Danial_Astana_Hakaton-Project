@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { prepareFile } from "@/lib/compress";
 import { store } from "@/lib/client-store";
-import type { Analysis } from "@/lib/schemas";
+import { Analysis } from "@/lib/schemas";
+import { SAMPLE_TOKEN } from "@/lib/client-store";
 import { apiErrorText } from "@/lib/i18n";
 import { useMessages } from "@/lib/i18n/client";
 
@@ -30,14 +31,15 @@ export function Uploader() {
   const [plan, setPlan] = useState({ deductible: "", deductibleMet: "", coinsurancePct: "", inNetwork: "unknown" });
   const [busy, setBusy] = useState(false);
   const [step, setStep] = useState(0);
+  const [fast, setFast] = useState(false); // samples load instantly; the steps just play quickly
   const [error, setError] = useState("");
   const startedSample = useRef(false);
 
   useEffect(() => {
     if (!busy) return;
-    const t = setInterval(() => setStep((s) => Math.min(s + 1, STEPS.length - 1)), 4500);
+    const t = setInterval(() => setStep((s) => Math.min(s + 1, STEPS.length - 1)), fast ? 480 : 4500);
     return () => clearInterval(t);
-  }, [busy, STEPS.length]);
+  }, [busy, fast, STEPS.length]);
 
   async function submit(billFiles: File[], billText: string, eobFiles: File[], eobText: string, sample = false) {
     setError("");
@@ -71,9 +73,39 @@ export function Uploader() {
     }
   }
 
+  /**
+   * Demo path: loads the sample's precomputed result (same rules engine, see src/lib/samples.ts), so the demo
+   * works even if the AI service is slow or down. Samples are unlocked for free.
+   */
   async function trySample(which: keyof typeof SAMPLES = "er") {
     setError("");
     setStep(0);
+    setFast(true);
+    setBusy(true);
+    try {
+      const [data] = await Promise.all([
+        fetch(`/samples/${which}.analysis.json`).then((r) => {
+          if (!r.ok) throw new Error();
+          return r.json();
+        }),
+        new Promise((r) => setTimeout(r, 2400)),
+      ]);
+      const analysis = Analysis.parse(data);
+      store.saveAnalysis(analysis);
+      store.saveUnlock(SAMPLE_TOKEN, analysis.analysisId);
+      router.push(`/results?id=${analysis.analysisId}`);
+    } catch {
+      setError(m.errors.generic);
+      setBusy(false);
+      setFast(false);
+    }
+  }
+
+  /** The same sample PDFs sent through the live AI + rules pipeline, for anyone who wants to see it run. */
+  async function trySampleLive(which: keyof typeof SAMPLES = "er") {
+    setError("");
+    setStep(0);
+    setFast(false);
     setBusy(true);
     try {
       const [b, e] = await Promise.all(
@@ -211,7 +243,10 @@ export function Uploader() {
         <a className="underline" href="/samples/summit-eob-anesthesia.pdf" target="_blank">
           {U.samplesEob}
         </a>
-        {U.samplesPost}
+        {U.samplesPost}{" "}
+        <button type="button" onClick={() => trySampleLive("er")} className="font-medium text-teal-800 underline underline-offset-2">
+          {U.sampleLive}
+        </button>
       </p>
       <p className="text-sm text-stone-500">
         {U.privacy}

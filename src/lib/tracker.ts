@@ -36,12 +36,12 @@ export function saveDisputes(list: Dispute[]) {
   store.saveDisputes(list);
 }
 
-/** Adds the bill to the tracker once (idempotent). */
+/** Adds the bill to the tracker once (idempotent). The ER demo case arrives with a little history. */
 export function ensureDispute(a: Analysis): Dispute {
   const list = getDisputes();
   const existing = list.find((d) => d.id === a.analysisId);
   if (existing) return existing;
-  const d: Dispute = {
+  const d: Dispute = a.sample === "er" ? demoDispute(a) : {
     id: a.analysisId,
     provider: a.bill.providerName,
     billBalance: a.summary.billBalance,
@@ -59,4 +59,29 @@ export function ensureDispute(a: Analysis): Dispute {
 
 export function isDisputeList(x: unknown): x is Dispute[] {
   return Array.isArray(x) && x.every((d) => d && typeof d === "object" && "id" in d && "provider" in d && "status" in d && Array.isArray((d as Dispute).calls));
+}
+
+/** A demo dispute a few days in: letter sent, one call logged with a reference number, follow-up booked. */
+export function demoDispute(a: Analysis): Dispute {
+  const t = today();
+  return {
+    id: a.analysisId,
+    provider: a.bill.providerName,
+    billBalance: a.summary.billBalance,
+    disputable: a.summary.disputableTotal,
+    status: "Called",
+    createdAt: addDays(t, -4),
+    letterSentAt: addDays(t, -3),
+    followUpDate: addDays(t, 10),
+    amountSaved: 0,
+    calls: [
+      {
+        id: "demo-call-1",
+        date: addDays(t, -1),
+        who: "Maria, billing office",
+        ref: "RGH-55120",
+        notes: "Account on hold for 30 days. They are reviewing the duplicate CT scan and will mail a corrected bill.",
+      },
+    ],
+  };
 }

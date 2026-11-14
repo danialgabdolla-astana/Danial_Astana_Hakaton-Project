@@ -125,6 +125,7 @@ export const fr: Messages = {
     lede: "Ajoutez les deux documents. Nous lisons chaque ligne, comparons la facture à ce que votre assureur a traité et vous montrons exactement quoi contester, gratuitement. Sans inscription.",
   },
   uploader: {
+    sampleLive: "Ou lancez l’exemple des urgences en direct avec l’IA (~20 s).",
     steps: ["Lecture de votre facture…", "Lecture de votre EOB…", "Association des lignes avec votre EOB…", "Application des 8 règles de facturation…", "Calcul du montant contestable…"],
     wait: "Cela prend généralement 20 à 60 secondes. Vos fichiers sont traités en mémoire et jamais conservés.",
     billTitle: "1. Votre facture détaillée",
@@ -225,6 +226,8 @@ export const fr: Messages = {
     demoPost: ", n’importe quelle date future, n’importe quel CVC et n’importe quel code postal. Aucun argent réel n’est débité.",
   },
   pack: {
+    sampleUnlocked: "Exemple — débloqué pour la démo",
+    sampleNote: "Les vraies factures se débloquent pour $19 (mode test de Stripe dans cette démo).",
     unlocked: "✓ Débloqué",
     readyTitle: "Votre dossier de contestation est prêt à être rédigé",
     readyBody: "Nous rédigeons une lettre et un script d’appel à partir des seuls problèmes trouvés ci-dessus, sans nouvelle réclamation.",
@@ -278,6 +281,8 @@ export const fr: Messages = {
     nsa: { title: "Aide de la loi No Surprises", detail: "Questions ou plaintes : cms.gov/nosurprises ou 1-800-985-3059." },
   },
   tracker: {
+    sampleBadge: "Exemple",
+    loadSample: "Charger une contestation d’exemple",
     title: "Mes contestations",
     lede: "Une contestation de facture demande souvent plusieurs appels sur quelques semaines. Gardez chaque appel, numéro de référence et date de relance au même endroit.",
     saved: "Vous avez économisé",

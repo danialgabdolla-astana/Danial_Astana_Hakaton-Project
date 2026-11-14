@@ -125,6 +125,7 @@ export const es: Messages = {
     lede: "Agrega los dos documentos. Leemos cada línea, comparamos la factura con lo que procesó tu aseguradora y te mostramos exactamente qué cuestionar, gratis. Sin registro.",
   },
   uploader: {
+    sampleLive: "O ejecuta el ejemplo de urgencias en vivo con la IA (~20 s).",
     steps: ["Leyendo tu factura…", "Leyendo tu EOB…", "Emparejando las líneas con tu EOB…", "Aplicando 8 reglas de facturación…", "Sumando lo que puedes disputar…"],
     wait: "Suele tardar entre 20 y 60 segundos. Tus archivos se procesan en memoria y nunca se guardan.",
     billTitle: "1. Tu factura detallada",
@@ -225,6 +226,8 @@ export const es: Messages = {
     demoPost: ", cualquier fecha futura, cualquier CVC y cualquier código postal. No se cobra dinero real.",
   },
   pack: {
+    sampleUnlocked: "Ejemplo — desbloqueado para la demo",
+    sampleNote: "Las facturas reales se desbloquean por $19 (modo de prueba de Stripe en esta demo).",
     unlocked: "✓ Desbloqueado",
     readyTitle: "Tu paquete de disputa está listo para redactarse",
     readyBody: "Escribiremos una carta y un guion para llamar usando solo los problemas encontrados arriba, sin reclamos nuevos.",
@@ -278,6 +281,8 @@ export const es: Messages = {
     nsa: { title: "Ayuda de la Ley No Surprises", detail: "Preguntas o quejas: cms.gov/nosurprises o 1-800-985-3059." },
   },
   tracker: {
+    sampleBadge: "Ejemplo",
+    loadSample: "Cargar una disputa de ejemplo",
     title: "Mis disputas",
     lede: "Las disputas de facturación suelen tomar varias llamadas durante semanas. Guarda cada llamada, número de referencia y fecha de seguimiento en un solo lugar.",
     saved: "Has ahorrado",

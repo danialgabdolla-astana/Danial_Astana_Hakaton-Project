@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { store } from "@/lib/client-store";
 import { downloadText } from "@/lib/ics";
 import type { Analysis } from "@/lib/schemas";
-import type { DisputePack } from "@/lib/schemas";
+import { StoredPack, type DisputePack } from "@/lib/schemas";
 import { addDays, ensureDispute, getDisputes, saveDisputes, today } from "@/lib/tracker";
 import { MULTILINE, fillPlaceholders, findPlaceholders, letterDate } from "@/lib/placeholders";
 import { apiErrorText, deadlineText } from "@/lib/i18n";
@@ -61,6 +61,25 @@ export function DisputePackView({ analysis, token }: { analysis: Analysis; token
     ensureDispute(analysis);
   }, [analysis]);
 
+  // Demo cases: show the pack the model wrote for this exact sample (public/samples/*.pack.json), if one is there.
+  useEffect(() => {
+    if (rawPack || !analysis.sample) return;
+    let cancelled = false;
+    fetch(`/samples/${analysis.sample}.pack.json`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        const parsed = StoredPack.safeParse(data);
+        if (!cancelled && parsed.success) {
+          store.savePack(analysis.analysisId, parsed.data);
+          setPack(parsed.data);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [analysis, rawPack]);
+
   async function generate() {
     setLoading(true);
     setError(null);
@@ -101,10 +120,11 @@ export function DisputePackView({ analysis, token }: { analysis: Analysis; token
   if (!rawPack) {
     return (
       <section className="rounded-2xl border border-teal-200 bg-white p-6 text-center">
-        <p className="text-sm font-medium text-teal-800">{T.unlocked}</p>
+        <p className="text-sm font-medium text-teal-800">{analysis.sample ? T.sampleUnlocked : T.unlocked}</p>
         <h2 className="mt-1 text-xl font-semibold">{T.readyTitle}</h2>
         <p className="mx-auto mt-2 max-w-xl text-sm text-stone-600">{T.readyBody}</p>
         {T.englishNote && <p className="mx-auto mt-2 max-w-xl text-sm text-stone-500">{T.englishNote}</p>}
+        {analysis.sample && <p className="mx-auto mt-2 max-w-xl text-sm text-stone-500">{T.sampleNote}</p>}
         <button
           onClick={generate}
           disabled={loading}
@@ -149,6 +169,11 @@ export function DisputePackView({ analysis, token }: { analysis: Analysis; token
 
   return (
     <section className="rounded-2xl border border-stone-200 bg-white">
+      {analysis.sample && (
+        <p className="no-print rounded-t-2xl border-b border-amber-200 bg-amber-50 px-5 py-2 text-sm text-amber-900">
+          <strong>{T.sampleUnlocked}.</strong> {T.sampleNote}
+        </p>
+      )}
       <div className="no-print flex flex-wrap gap-1 border-b border-stone-200 p-2" role="tablist">
         {tabs.map((t) => (
           <button

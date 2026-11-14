@@ -11,6 +11,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { PDFDocument, PDFFont, PDFPage, StandardFonts, degrees, rgb } from "pdf-lib";
 import { sampleBill, sampleEob, surpriseBill, surpriseEob } from "../src/lib/sample-data";
+import { sampleAnalysis } from "../src/lib/samples";
 
 const INK = rgb(0.12, 0.13, 0.15);
 const MUTED = rgb(0.42, 0.45, 0.5);
@@ -354,7 +355,10 @@ async function main() {
   writeFileSync("public/samples/summit-eob.pdf", await makeEob());
   writeFileSync("public/samples/lakeshore-anesthesia-bill.pdf", await makeSurpriseBill());
   writeFileSync("public/samples/summit-eob-anesthesia.pdf", await makeSurpriseEob());
-  console.log("Wrote 4 sample PDFs to public/samples/");
+  // Precomputed results for the demo (same rules engine; checked by tests/samples.test.ts).
+  writeFileSync("public/samples/er.analysis.json", JSON.stringify(sampleAnalysis("er"), null, 1) + "\n");
+  writeFileSync("public/samples/anesthesia.analysis.json", JSON.stringify(sampleAnalysis("anesthesia"), null, 1) + "\n");
+  console.log("Wrote 4 sample PDFs and 2 precomputed sample results to public/samples/");
 }
 
 main();

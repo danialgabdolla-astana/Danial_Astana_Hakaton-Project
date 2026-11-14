@@ -1,0 +1,239 @@
+{
+ "analysisId": "0565ea4a5239f158ba251b2c",
+ "createdAt": "2026-11-15T00:00:00.000Z",
+ "bill": {
+  "providerName": "Riverside General Hospital",
+  "accountRef": "****4471",
+  "statementDate": "2026-10-27",
+  "dueDate": "2026-11-26",
+  "isItemized": true,
+  "lines": [
+   {
+    "id": "B1",
+    "serviceDate": "2026-09-14",
+    "code": "99284",
+    "codeType": "CPT",
+    "description": "Emergency dept visit, level 4",
+    "quantity": 1,
+    "billedAmount": 1450
+   },
+   {
+    "id": "B2",
+    "serviceDate": "2026-09-14",
+    "code": "70450",
+    "codeType": "CPT",
+    "description": "CT head/brain w/o contrast",
+    "quantity": 1,
+    "billedAmount": 2100
+   },
+   {
+    "id": "B3",
+    "serviceDate": "2026-09-14",
+    "code": "70450",
+    "codeType": "CPT",
+    "description": "CT head/brain w/o contrast",
+    "quantity": 1,
+    "billedAmount": 2100
+   },
+   {
+    "id": "B4",
+    "serviceDate": "2026-09-14",
+    "code": "12001",
+    "codeType": "CPT",
+    "description": "Simple repair of wound <=2.5 cm",
+    "quantity": 1,
+    "billedAmount": 380
+   },
+   {
+    "id": "B5",
+    "serviceDate": "2026-09-14",
+    "code": "99070",
+    "codeType": "CPT",
+    "description": "Supplies and materials",
+    "quantity": 1,
+    "billedAmount": 165
+   }
+  ],
+  "totalCharges": 6195,
+  "insurancePaid": 0,
+  "adjustments": -4355,
+  "patientBalance": 1840
+ },
+ "eobs": [
+  {
+   "insurerName": "Summit Health Plan",
+   "claimRef": "****2093",
+   "providerName": "Riverside General Hospital",
+   "lines": [
+    {
+     "id": "E1",
+     "serviceDate": "2026-09-14",
+     "code": "99284",
+     "description": "Emergency dept visit, level 4",
+     "billedAmount": 1450,
+     "allowedAmount": 620,
+     "planPaid": 0,
+     "deductible": 620,
+     "copay": 0,
+     "coinsurance": 0,
+     "notCovered": 0,
+     "patientResponsibility": 620,
+     "remarkCodes": [
+      "PR1"
+     ],
+     "networkStatus": "in"
+    },
+    {
+     "id": "E2",
+     "serviceDate": "2026-09-14",
+     "code": "70450",
+     "description": "CT head/brain w/o contrast",
+     "billedAmount": 2100,
+     "allowedAmount": 480,
+     "planPaid": 0,
+     "deductible": 480,
+     "copay": 0,
+     "coinsurance": 0,
+     "notCovered": 0,
+     "patientResponsibility": 480,
+     "remarkCodes": [
+      "PR1"
+     ],
+     "networkStatus": "in"
+    },
+    {
+     "id": "E3",
+     "serviceDate": "2026-09-14",
+     "code": "12001",
+     "description": "Simple repair of wound <=2.5 cm",
+     "billedAmount": 380,
+     "allowedAmount": 95,
+     "planPaid": 0,
+     "deductible": 95,
+     "copay": 0,
+     "coinsurance": 0,
+     "notCovered": 0,
+     "patientResponsibility": 95,
+     "remarkCodes": [
+      "PR1"
+     ],
+     "networkStatus": "in"
+    }
+   ],
+   "totalPatientResponsibility": 1195
+  }
+ ],
+ "context": {},
+ "matches": [
+  {
+   "billLineId": "B1",
+   "eobLineId": "E1"
+  },
+  {
+   "billLineId": "B2",
+   "eobLineId": "E2"
+  },
+  {
+   "billLineId": "B3",
+   "eobLineId": null
+  },
+  {
+   "billLineId": "B4",
+   "eobLineId": "E3"
+  },
+  {
+   "billLineId": "B5",
+   "eobLineId": null
+  }
+ ],
+ "flags": [
+  {
+   "ruleId": "BILL_EXCEEDS_EOB",
+   "title": "Your bill is higher than what your EOB says you owe",
+   "explanation": "The bill asks for $1,840.00, but your insurer's EOB lists your responsibility as $1,195.00. For an in-network claim, you generally shouldn't pay more than the EOB amount. Ask the billing office to explain or correct the difference.",
+   "billLineIds": [],
+   "eobLineIds": [
+    "E1",
+    "E2",
+    "E3"
+   ],
+   "amountAtStake": 645,
+   "confidence": "high",
+   "source": "EOB total vs. bill balance",
+   "params": {
+    "balance": 1840,
+    "eobTotal": 1195,
+    "allOut": false
+   },
+   "id": "F1"
+  },
+  {
+   "ruleId": "DUPLICATE_CHARGE",
+   "title": "Charged twice: CT head/brain w/o contrast",
+   "explanation": "This service appears more often on the bill than on your EOB for 2026-09-14. The insurer processed it once, so the extra line likely shouldn't be on your bill. Amount is based on the insurer's allowed amount, because your deductible applies.",
+   "billLineIds": [
+    "B2",
+    "B3"
+   ],
+   "eobLineIds": [
+    "E2"
+   ],
+   "amountAtStake": 480,
+   "confidence": "high",
+   "source": "EOB line E2 (processed once)",
+   "params": {
+    "desc": "CT head/brain w/o contrast",
+    "date": "2026-09-14",
+    "onEob": true,
+    "basis": "deductible",
+    "pct": null,
+    "eobLine": "E2"
+   },
+   "id": "F2"
+  },
+  {
+   "ruleId": "LINE_NOT_ON_EOB",
+   "title": "Not on your EOB: Supplies and materials",
+   "explanation": "We couldn't find this charge on your insurer's EOB. It may never have been submitted to insurance, or it was billed separately. Ask the provider to submit it to your insurer (or remove it) before you pay.",
+   "billLineIds": [
+    "B5"
+   ],
+   "eobLineIds": [],
+   "amountAtStake": 165,
+   "confidence": "medium",
+   "source": "Rule: no matching EOB line",
+   "params": {
+    "desc": "Supplies and materials"
+   },
+   "id": "F3"
+  },
+  {
+   "ruleId": "POSSIBLE_UNBUNDLING",
+   "title": "Worth asking: Supplies and materials",
+   "explanation": "This was billed separately next to \"Emergency dept visit, level 4\". These are often billed as one service (supplies that are usually included in the visit or facility fee). Ask the billing office whether it should be bundled.",
+   "billLineIds": [
+    "B5",
+    "B1"
+   ],
+   "eobLineIds": [],
+   "amountAtStake": 165,
+   "confidence": "low",
+   "source": "Rule: commonly bundled codes 99070 + 99284",
+   "params": {
+    "part": "Supplies and materials",
+    "whole": "Emergency dept visit, level 4",
+    "pair": "supplies",
+    "partCode": "99070",
+    "wholeCode": "99284"
+   },
+   "id": "F4"
+  }
+ ],
+ "summary": {
+  "issueCount": 4,
+  "disputableTotal": 645,
+  "billBalance": 1840,
+  "eobPatientResponsibility": 1195
+ },
+ "sample": "er"
+}

@@ -122,6 +122,8 @@ export const Analysis = z.object({
   matches: z.array(z.object({ billLineId: z.string(), eobLineId: z.string().nullable() })),
   flags: z.array(Flag),
   summary: Summary,
+  /** Set on the two built-in demo cases, which are unlocked for free. */
+  sample: z.enum(["er", "anesthesia"]).optional(),
 });
 export type Analysis = z.infer<typeof Analysis>;
 

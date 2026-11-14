@@ -6,7 +6,9 @@ import { store } from "@/lib/client-store";
 import { buildIcs, downloadText } from "@/lib/ics";
 import { CaseLink } from "./CaseLink";
 import { formatUsd } from "@/lib/money";
-import { STATUSES, getDisputes, isDisputeList, saveDisputes, today, type Dispute, type Status } from "@/lib/tracker";
+import { STATUSES, ensureDispute, getDisputes, isDisputeList, saveDisputes, today, type Dispute, type Status } from "@/lib/tracker";
+import { SAMPLE_TOKEN } from "@/lib/client-store";
+import { Analysis } from "@/lib/schemas";
 import { useMessages } from "@/lib/i18n/client";
 
 export function TrackerBoard() {
@@ -49,6 +51,18 @@ export function TrackerBoard() {
   }
 
   const checkABill = useMessages().common.checkABill;
+
+  async function loadSample() {
+    try {
+      const a = Analysis.parse(await fetch("/samples/er.analysis.json").then((r) => r.json()));
+      store.saveAnalysis(a);
+      store.saveUnlock(SAMPLE_TOKEN, a.analysisId);
+      ensureDispute(a);
+      setList(getDisputes());
+    } catch {
+      /* offline: the empty state stays */
+    }
+  }
   const saved = list.reduce((s, d) => s + (d.status === "Resolved" ? d.amountSaved : 0), 0);
   const open = list.filter((d) => d.status !== "Resolved").length;
 
@@ -85,9 +99,14 @@ export function TrackerBoard() {
       {list.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-stone-300 bg-white p-10 text-center">
           <p className="text-stone-600">{t.empty}</p>
-          <Link href="/check" className="mt-4 inline-block rounded-xl bg-teal-700 px-5 py-3 font-medium text-white">
-            {checkABill}
-          </Link>
+          <div className="mt-4 flex flex-wrap justify-center gap-2">
+            <Link href="/check" className="inline-block rounded-xl bg-teal-700 px-5 py-3 font-medium text-white">
+              {checkABill}
+            </Link>
+            <button onClick={loadSample} className="rounded-xl border border-stone-300 bg-white px-5 py-3 font-medium hover:bg-stone-100">
+              {t.loadSample}
+            </button>
+          </div>
         </div>
       ) : (
         <ul className="space-y-4">
@@ -128,7 +147,10 @@ function DisputeCard({ d, onChange, onRemove }: { d: Dispute; onChange: (p: Part
     <li className="rounded-2xl border border-stone-200 bg-white p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold">{d.provider}</h2>
+          <h2 className="text-lg font-semibold">
+            {d.provider}
+            {analysis?.sample && <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 align-middle text-xs font-medium text-amber-900">{t.sampleBadge}</span>}
+          </h2>
           <p className="text-sm text-stone-600">{t.meta({ bill: formatUsd(d.billBalance), disputing: formatUsd(d.disputable), started: d.createdAt })}</p>
         </div>
         <div className="flex gap-2 text-sm">

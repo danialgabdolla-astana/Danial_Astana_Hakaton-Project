@@ -6,6 +6,7 @@ import { clientIp, rateLimit } from "@/lib/ratelimit";
 import { runRules } from "@/lib/rules";
 import { BillDoc, EobDoc, PlanContext } from "@/lib/schemas";
 import { verifyUnlock } from "@/lib/unlock";
+import { isSampleCase } from "@/lib/samples";
 
 export const maxDuration = 120;
 
@@ -20,12 +21,15 @@ export async function POST(request: Request) {
     if (!parsed.success) throw new UserError("Invalid request.", 400, "invalidRequest");
     const { bill, eobs, context, token } = parsed.data;
 
-    // The token is bound to a hash of these exact documents, so it can't be reused for another bill.
-    let ok;
-    try {
-      ok = verifyUnlock(token, analysisIdFor({ bill, eobs }));
-    } catch {
-      throw new UserError("Unlocking isn't set up on this server (missing UNLOCK_SECRET).", 503, "notConfigured");
+    // The two demo cases are free. Everything else needs a token bound to a hash of these exact documents,
+    // so it can't be reused for another bill.
+    let ok = isSampleCase(bill, eobs);
+    if (!ok) {
+      try {
+        ok = verifyUnlock(token, analysisIdFor({ bill, eobs })) !== null;
+      } catch {
+        throw new UserError("Unlocking isn't set up on this server (missing UNLOCK_SECRET).", 503, "notConfigured");
+      }
     }
     if (!ok) throw new UserError("Please unlock this bill first.", 402, "unlockFirst");
 

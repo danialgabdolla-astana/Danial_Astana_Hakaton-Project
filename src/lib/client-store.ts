@@ -2,6 +2,9 @@
 
 import type { Analysis } from "./schemas";
 
+/** The two demo cases are unlocked for free; the server checks they really are the demo documents. */
+export const SAMPLE_TOKEN = "sample";
+
 /** Everything is stored in this browser only (no accounts, no database). */
 const K = {
   analysis: (id: string) => `bc:analysis:${id}`,
