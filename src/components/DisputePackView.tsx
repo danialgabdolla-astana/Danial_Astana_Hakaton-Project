@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { store } from "@/lib/client-store";
 import { downloadText } from "@/lib/ics";
 import type { Analysis } from "@/lib/schemas";
-import type { DisputePack } from "@/lib/dispute";
+import type { DisputePack } from "@/lib/schemas";
 import { addDays, ensureDispute, getDisputes, saveDisputes, today } from "@/lib/tracker";
 import { MULTILINE, fillPlaceholders, findPlaceholders, letterDate } from "@/lib/placeholders";
 

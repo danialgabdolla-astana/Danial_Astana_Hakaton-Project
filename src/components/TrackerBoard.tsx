@@ -2,7 +2,9 @@
 
 import { useRef, useState } from "react";
 import Link from "next/link";
+import { store } from "@/lib/client-store";
 import { buildIcs, downloadText } from "@/lib/ics";
+import { CaseLink } from "./CaseLink";
 import { formatUsd } from "@/lib/money";
 import { STATUSES, getDisputes, isDisputeList, saveDisputes, today, type Dispute, type Status } from "@/lib/tracker";
 
@@ -72,7 +74,7 @@ export function TrackerBoard() {
             e.target.value = "";
           }}
         />
-        <span className="self-center text-stone-500">Your tracker lives in this browser only. Export it to keep a backup.</span>
+        <span className="self-center text-stone-500">Your tracker lives in this browser only. Use a private case link to open a case elsewhere, or export everything as a backup.</span>
       </div>
       {msg && <p className="text-sm text-teal-800">{msg}</p>}
 
@@ -97,6 +99,7 @@ export function TrackerBoard() {
 function DisputeCard({ d, onChange, onRemove }: { d: Dispute; onChange: (p: Partial<Dispute>) => void; onRemove: () => void }) {
   const [call, setCall] = useState({ date: today(), who: "", ref: "", notes: "" });
   const [showCall, setShowCall] = useState(false);
+  const [analysis] = useState(() => store.getAnalysis(d.id));
   const stepIndex = STATUSES.indexOf(d.status);
 
   function addCall() {
@@ -134,6 +137,13 @@ function DisputeCard({ d, onChange, onRemove }: { d: Dispute; onChange: (p: Part
           </button>
         </div>
       </div>
+
+      {analysis && (
+        <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-stone-600">
+          <span>Open this case on another device:</span>
+          <CaseLink analysis={analysis} compact />
+        </div>
+      )}
 
       <ol className="mt-4 flex flex-wrap gap-1 text-xs sm:text-sm" aria-label="Status">
         {STATUSES.map((s, i) => (

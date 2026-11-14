@@ -42,7 +42,14 @@ export const store = {
     set(K.unlock(scope), token);
   },
   getUnlock(analysisId: string): string | null {
-    return get<string>(K.unlock(analysisId)) ?? get<string>(K.unlock("family"));
+    return store.getUnlockWithScope(analysisId)?.token ?? null;
+  },
+  getUnlockWithScope(analysisId: string): { token: string; scope: string } | null {
+    for (const scope of [analysisId, "family"]) {
+      const token = get<string>(K.unlock(scope));
+      if (token) return { token, scope };
+    }
+    return null;
   },
 
   savePack: (id: string, pack: unknown) => set(K.pack(id), pack),

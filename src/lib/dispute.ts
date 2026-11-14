@@ -1,22 +1,9 @@
 import { z } from "zod";
 import { anthropic, jsonFromText, MODEL, UserError } from "./anthropic";
 import { LETTER_SYSTEM, LETTER_TOOL } from "./prompts/letter";
-import type { BillDoc, EobDoc, Flag, Summary } from "./schemas";
+import { DisputePack, type BillDoc, type Deadline, type EobDoc, type Flag, type Summary } from "./schemas";
 
-export const DisputePack = z.object({
-  billingLetter: z.string().min(200),
-  insurerLetter: z.string().nullable(),
-  phoneScript: z.object({
-    opening: z.string(),
-    asks: z.array(z.string()).min(1),
-    ifTheyPushBack: z.array(z.string()),
-    escalation: z.array(z.string()).min(1),
-    writeDown: z.array(z.string()).min(1),
-  }),
-});
-export type DisputePack = z.infer<typeof DisputePack> & { deadlines: Deadline[] };
-
-export type Deadline = { title: string; detail: string; daysFromNow: number | null };
+export { DisputePack, type Deadline } from "./schemas";
 
 /** Deadlines are rule-based, not generated, so they are never invented. */
 export function deadlinesFor(flags: Flag[], bill: BillDoc): Deadline[] {

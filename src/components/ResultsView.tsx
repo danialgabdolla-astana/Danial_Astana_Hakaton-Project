@@ -9,6 +9,7 @@ import { FlagCard } from "./FlagCard";
 import { SideBySide } from "./SideBySide";
 import { Paywall } from "./Paywall";
 import { DisputePackView } from "./DisputePackView";
+import { CaseLink } from "./CaseLink";
 
 export function ResultsView() {
   // Rendered client-only (see app/results/page.tsx), so reading the URL and localStorage here is safe.
@@ -44,7 +45,7 @@ export function ResultsView() {
     return (
       <div className="mx-auto max-w-xl p-10 text-center">
         <h1 className="text-2xl font-semibold">We couldn&apos;t find that check</h1>
-        <p className="mt-2 text-stone-600">Results are stored only in the browser where you ran the check.</p>
+        <p className="mt-2 text-stone-600">Results are stored only in the browser where you ran the check. If you saved a private case link, open it here.</p>
         <Link href="/check" className="mt-6 inline-block rounded-xl bg-teal-700 px-5 py-3 font-medium text-white">
           Check a bill
         </Link>
@@ -116,6 +117,8 @@ export function ResultsView() {
           <Paywall analysisId={analysis.analysisId} disputable={summary.disputableTotal} />
         </div>
       )}
+
+      <CaseLink analysis={analysis} />
     </main>
   );
 }

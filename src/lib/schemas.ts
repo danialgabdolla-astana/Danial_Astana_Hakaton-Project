@@ -121,3 +121,23 @@ export const Analysis = z.object({
   summary: Summary,
 });
 export type Analysis = z.infer<typeof Analysis>;
+
+/** What the letter model must return (validated server-side before it reaches the user). */
+export const DisputePack = z.object({
+  billingLetter: z.string().min(200),
+  insurerLetter: z.string().nullable(),
+  phoneScript: z.object({
+    opening: z.string(),
+    asks: z.array(z.string()).min(1),
+    ifTheyPushBack: z.array(z.string()),
+    escalation: z.array(z.string()).min(1),
+    writeDown: z.array(z.string()).min(1),
+  }),
+});
+
+export const Deadline = z.object({ title: z.string(), detail: z.string(), daysFromNow: z.number().nullable() });
+export type Deadline = z.infer<typeof Deadline>;
+
+/** A dispute pack as the client stores it: the model's output plus rule-based deadlines. */
+export const StoredPack = DisputePack.extend({ deadlines: z.array(Deadline) });
+export type DisputePack = z.infer<typeof StoredPack>;
