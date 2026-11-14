@@ -21,6 +21,7 @@ export const fr: Messages = {
     myDisputes: "Mes contestations",
   },
   footer: {
+    github: "Code source sur GitHub",
     disclaimerStrong: "BillCheck n’est ni un cabinet d’avocats ni un prestataire de soins. Ce n’est pas un conseil juridique ou médical.",
     disclaimerRest: "Nous vous aidons à lire vos documents et à poser les bonnes questions.",
     knowRights: "Vos droits :",
@@ -29,6 +30,9 @@ export const fr: Messages = {
     project: "Projet Business Cup 2.0. Les documents d’exemple sont fictifs.",
   },
   landing: {
+    ctaFree: "Vérifier ma facture gratuitement",
+    ctaFamily: "Commencer par une vérification gratuite",
+    vsChatShort: "Chatbot",
     badge: "Pour les adultes assurés qui ont une facture médicale incompréhensible",
     h1: "Votre facture médicale est peut-être fausse. Comparez-la à votre EOB en 2 minutes.",
     lede: "Envoyez votre facture et le relevé de prestations (EOB) de votre assureur. BillCheck compare chaque ligne, vous montre ce que vous pouvez contester et vous donne une lettre prête à envoyer, un script d’appel et les délais.",
@@ -183,7 +187,9 @@ export const fr: Messages = {
       ".",
     found: "Ce que nous avons trouvé",
     noIssues: "Aucun problème trouvé.",
-    howWorks: "Comment ça marche : l’IA ne fait que lire vos documents. Chaque problème et chaque montant ci-dessus proviennent de règles de facturation fixes, consultables dans notre code open source.",
+    howWorksPre: "Comment ça marche : l’IA ne fait que lire vos documents. Chaque problème et chaque montant ci-dessus proviennent de règles de facturation fixes, consultables dans ",
+    howWorksLink: "notre code open source",
+    howWorksPost: ".",
     lineByLine: "Ligne par ligne",
     legend: (acct: string) => `Rouge = confiance élevée · Orange = moyenne · Bleu = à demander. Les noms et identifiants sont masqués (${acct}).`,
     confirming: "Confirmation de votre paiement auprès de Stripe…",

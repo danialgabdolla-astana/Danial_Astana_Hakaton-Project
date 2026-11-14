@@ -67,7 +67,21 @@ export function Landing() {
           {L.vsTitle}
         </h2>
         <p className="mt-2 max-w-2xl text-stone-600">{L.vsLede}</p>
-        <div className="mt-6 overflow-x-auto rounded-2xl border border-stone-200 bg-white">
+        {/* Narrow screens: one card per row, so the BillCheck column is never cut off. */}
+        <ul className="mt-6 space-y-3 sm:hidden">
+          {L.vsRows.map(([what, chat, us]) => (
+            <li key={what} className="rounded-2xl border border-stone-200 bg-white p-4 text-sm">
+              <p className="font-medium">{what}</p>
+              <p className="mt-2 text-stone-600">
+                <span className="font-medium">{L.vsChatShort}:</span> {chat}
+              </p>
+              <p className="mt-1 text-teal-900">
+                <span className="font-medium">{L.vsUs}:</span> ✓ {us}
+              </p>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-6 hidden overflow-x-auto rounded-2xl border border-stone-200 bg-white sm:block">
           <table className="w-full min-w-[640px] text-left text-sm">
             <thead>
               <tr className="bg-stone-50 text-stone-500">
@@ -101,9 +115,9 @@ export function Landing() {
             {L.pricingTitle}
           </h2>
           <div className="mt-6 grid gap-4 md:grid-cols-3">
-            <Price {...L.plans.free} />
-            <Price {...L.plans.single} highlight />
-            <Price {...L.plans.family} />
+            <Price {...L.plans.free} cta={L.ctaFree} />
+            <Price {...L.plans.single} cta={L.ctaFree} highlight />
+            <Price {...L.plans.family} cta={L.ctaFamily} />
           </div>
           <h3 className="mt-12 font-semibold">{L.compareTitle}</h3>
           <div className="mt-3 overflow-x-auto">
@@ -162,19 +176,25 @@ export function Landing() {
   );
 }
 
-function Price({ name, price, note, items, highlight }: { name: string; price: string; note?: string; items: string[]; highlight?: boolean }) {
+function Price({ name, price, note, items, highlight, cta }: { name: string; price: string; note?: string; items: string[]; highlight?: boolean; cta: string }) {
   return (
-    <div className={`rounded-2xl border p-6 ${highlight ? "border-teal-600 ring-2 ring-teal-600/20" : "border-stone-200"}`}>
+    <div className={`flex flex-col rounded-2xl border p-6 ${highlight ? "border-teal-600 ring-2 ring-teal-600/20" : "border-stone-200"}`}>
       <div className="font-medium">{name}</div>
       <div className="mt-2 text-4xl font-semibold">
         {price}
         {note && <span className="ml-1 text-base font-normal text-stone-500">{note}</span>}
       </div>
-      <ul className="mt-4 space-y-2 text-sm text-stone-700">
+      <ul className="mt-4 flex-1 space-y-2 text-sm text-stone-700">
         {items.map((i) => (
           <li key={i}>✓ {i}</li>
         ))}
       </ul>
+      <Link
+        href="/check"
+        className={`mt-6 rounded-xl px-4 py-2.5 text-center font-semibold ${highlight ? "bg-teal-700 text-white hover:bg-teal-800" : "border border-teal-700 text-teal-900 hover:bg-teal-50"}`}
+      >
+        {cta}
+      </Link>
     </div>
   );
 }

@@ -2,10 +2,23 @@ import type { Metadata, Viewport } from "next";
 import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
 import "./globals.css";
 
+const TITLE = "BillCheck — check your medical bill against your EOB";
+const DESCRIPTION =
+  "Upload your medical bill and your insurer's EOB. BillCheck finds what you can dispute and gives you a ready-to-send letter, a phone script and deadlines. $19 per bill.";
+
 export const metadata: Metadata = {
-  title: "BillCheck — check your medical bill against your EOB",
-  description:
-    "Upload your medical bill and your insurer's EOB. BillCheck finds what you can dispute and gives you a ready-to-send letter, a phone script and deadlines. $19 per bill.",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://mybillcheck.vercel.app"),
+  title: TITLE,
+  description: DESCRIPTION,
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: "/",
+    siteName: "BillCheck",
+    type: "website",
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "BillCheck result: You may be overcharged $645" }],
+  },
+  twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION, images: ["/og.png"] },
 };
 
 export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#0f766e" };

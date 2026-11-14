@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { LOCALES, MESSAGES, type Locale } from "@/lib/i18n";
+import { REPO_URL } from "@/lib/links";
 import { setLocale, useHtmlLang, useLocale, useMessages } from "@/lib/i18n/client";
 
 const SHORT: Record<Locale, string> = { en: "EN", es: "ES", fr: "FR" };
@@ -75,7 +76,12 @@ export function SiteFooter() {
             {m.footer.nsa}
           </a>
         </p>
-        <p className="text-stone-500">{m.footer.project}</p>
+        <p className="text-stone-500">
+          {m.footer.project} ·{" "}
+          <a className="underline" href={REPO_URL} target="_blank" rel="noreferrer">
+            {m.footer.github}
+          </a>
+        </p>
       </div>
     </footer>
   );

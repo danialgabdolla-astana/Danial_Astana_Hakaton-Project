@@ -12,6 +12,7 @@ import { DisputePackView } from "./DisputePackView";
 import { CaseLink } from "./CaseLink";
 import { apiErrorText } from "@/lib/i18n";
 import { breakdownOf } from "@/lib/breakdown";
+import { RULES_URL } from "@/lib/links";
 import { useMessages } from "@/lib/i18n/client";
 
 export function ResultsView() {
@@ -115,7 +116,13 @@ export function ResultsView() {
               onSelect={() => setActive(active === f.id ? null : f.id)}
             />
           ))}
-          <p className="text-xs text-stone-500">{m.results.howWorks}</p>
+          <p className="text-xs text-stone-500">
+            {m.results.howWorksPre}
+            <a href={RULES_URL} target="_blank" rel="noreferrer" className="underline">
+              {m.results.howWorksLink}
+            </a>
+            {m.results.howWorksPost}
+          </p>
         </section>
         <section className="lg:col-span-3" aria-labelledby="compare">
           <h2 id="compare" className="mb-3 text-lg font-semibold">

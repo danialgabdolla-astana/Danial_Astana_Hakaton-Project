@@ -19,6 +19,7 @@ export const en = {
     myDisputes: "My disputes",
   },
   footer: {
+    github: "Source code on GitHub",
     disclaimerStrong: "BillCheck is not a law firm or medical provider. Not legal or medical advice.",
     disclaimerRest: "We help you read your documents and ask the right questions.",
     knowRights: "Know your rights:",
@@ -27,6 +28,9 @@ export const en = {
     project: "Business Cup 2.0 project. Sample documents are fictional.",
   },
   landing: {
+    ctaFree: "Check my bill — free",
+    ctaFamily: "Start with a free check",
+    vsChatShort: "Chatbot",
     badge: "For insured adults with a medical bill they don’t understand",
     h1: "Your medical bill might be wrong. Check it against your EOB in 2 minutes.",
     lede: "Upload your bill and your insurer’s Explanation of Benefits. BillCheck matches every line, shows what you can dispute, and gives you a ready-to-send letter, a phone script and deadlines.",
@@ -181,7 +185,9 @@ export const en = {
       ".",
     found: "What we found",
     noIssues: "No issues found.",
-    howWorks: "How this works: AI only reads your documents. Every issue and dollar amount above comes from fixed billing rules you can read in our open-source code.",
+    howWorksPre: "How this works: AI only reads your documents. Every issue and dollar amount above comes from fixed billing rules you can read in ",
+    howWorksLink: "our open-source code",
+    howWorksPost: ".",
     lineByLine: "Line by line",
     legend: (acct: string) => `Red = high confidence · Amber = medium · Blue = worth asking. Names and IDs are masked (${acct}).`,
     confirming: "Confirming your payment with Stripe…",
