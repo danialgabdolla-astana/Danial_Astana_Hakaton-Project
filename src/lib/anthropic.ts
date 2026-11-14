@@ -56,6 +56,21 @@ function toBlocks(docs: DocInput[]): ContentBlock[] {
   });
 }
 
+const PHOTO_HINT = " If it’s a photo, try a clearer one, or paste the text instead.";
+
+/**
+ * Plain-language error for a document that isn't what we asked for (or can't be read). We never show the
+ * model's own wording, and only suggest a clearer photo when the user actually sent an image.
+ */
+export function wrongDocument(label: "bill" | "EOB", docs: DocInput[]): UserError {
+  const photo = docs.some((d) => d.kind === "file" && d.mediaType.startsWith("image/"));
+  const message =
+    label === "bill"
+      ? "This doesn’t look like an itemized medical bill. Make sure it lists services, dates and charges."
+      : "This doesn’t look like an EOB. It usually says “This is not a bill” at the top.";
+  return new UserError(message + (photo ? PHOTO_HINT : ""), 422, label === "bill" ? "notBill" : "notEob", { photo: photo ? 1 : 0 });
+}
+
 /** Fallback: some models answer with a JSON object in text instead of calling the tool. */
 export function jsonFromText(content: Anthropic.Messages.ContentBlock[]): unknown {
   const text = content.map((c) => (c.type === "text" ? c.text : "")).join("");
@@ -76,7 +91,7 @@ async function extractWithTool<T>(
   docs: DocInput[],
   instruction: string,
   schema: z.ZodType<T>,
-  label: string,
+  label: "bill" | "EOB",
 ): Promise<T> {
   const messages: Anthropic.Messages.MessageParam[] = [{ role: "user", content: [...toBlocks(docs), { type: "text", text: instruction }] }];
 
@@ -106,14 +121,7 @@ async function extractWithTool<T>(
     const call = res.content.find((c) => c.type === "tool_use");
     const input = (call?.type === "tool_use" ? call.input : jsonFromText(res.content)) as Record<string, unknown>;
 
-    if (input.readable === false) {
-      throw new UserError(
-        `We couldn't read your ${label}${input.problem ? ` (${String(input.problem).slice(0, 140)})` : ""}. Try a clearer photo or paste the text.`,
-        422,
-        "unreadable",
-        { doc: label },
-      );
-    }
+    if (input.readable === false) throw wrongDocument(label, docs);
 
     const parsed = schema.safeParse(input);
     if (parsed.success) return parsed.data;
@@ -139,7 +147,7 @@ async function extractWithTool<T>(
       continue;
     }
     console.error(`[extract:${label}] invalid JSON after retry`);
-    throw new UserError(`We couldn't read your ${label} reliably. Try a clearer photo or paste the text.`, 422, "unreadable", { doc: label });
+    throw wrongDocument(label, docs);
   }
   throw new UserError("Extraction failed.", 500, "readFailed");
 }
@@ -155,10 +163,13 @@ const EobToolResult = z.object({
 
 export async function extractBill(docs: DocInput[]): Promise<BillDoc> {
   const r = await extractWithTool(BILL_SYSTEM, BILL_TOOL, docs, "Extract this medical bill. Respond only by calling the record_bill tool.", BillToolResult, "bill");
+  // Nothing billed and nothing owed: whatever this was, it wasn't a medical bill.
+  if (r.lines.length === 0 && !r.patientBalance && !r.totalCharges) throw wrongDocument("bill", docs);
   return { ...r, lines: r.lines.map((l, i) => ({ ...l, id: `B${i + 1}` })) };
 }
 
 export async function extractEobs(docs: DocInput[]): Promise<EobDoc[]> {
   const r = await extractWithTool(EOB_SYSTEM, EOB_TOOL, docs, "Extract this Explanation of Benefits. Respond only by calling the record_eobs tool.", EobToolResult, "EOB");
+  if (r.eobs.every((e) => e.lines.length === 0 && !e.totalPatientResponsibility)) throw wrongDocument("EOB", docs);
   return r.eobs.map((e) => ({ ...e, lines: e.lines.map((l, i) => ({ ...l, id: `E${i + 1}` })) }));
 }

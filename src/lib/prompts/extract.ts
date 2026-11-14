@@ -10,7 +10,7 @@ Rules for every field:
 - Dates are YYYY-MM-DD.
 - Privacy: replace the patient's, guarantor's and member's names with "[PATIENT]" or "[MEMBER]" wherever they appear in text fields,
   and never copy dates of birth, street addresses, SSNs or phone numbers of the patient.
-- If the document is unreadable, blank, or clearly not the requested document type, set "readable" to false and explain in "problem".`;
+- If the document is unreadable, blank, or clearly not the requested document type (for example random text, a receipt or a letter), set "readable" to false and explain in "problem". Never invent lines or amounts to fill the form.`;
 
 export const BILL_SYSTEM = `You extract data from US medical bills (hospital or provider patient statements) for a consumer app.
 ${COMMON}

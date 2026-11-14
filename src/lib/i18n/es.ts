@@ -364,6 +364,13 @@ export const es: Messages = {
     notCase: "Este enlace no es un enlace de caso de BillCheck.",
   },
   errors: {
+    notBill: (v: Vars) =>
+      "Esto no parece una factura médica detallada. Asegúrate de que incluya servicios, fechas y cargos." +
+      (v.photo ? " Si es una foto, prueba con una más clara o pega el texto." : ""),
+    notEob: (v: Vars) =>
+      "Esto no parece un EOB. Normalmente dice “This is not a bill” en la parte de arriba." + (v.photo ? " Si es una foto, prueba con una más clara o pega el texto." : ""),
+    notBoth: () =>
+      "Ninguno de los dos documentos parece correcto. La factura debe incluir servicios, fechas y cargos; el EOB suele decir “This is not a bill” arriba.",
     generic: "Algo salió mal. Inténtalo de nuevo.",
     invalidRequest: "Solicitud no válida.",
     tooManyFiles: (v: Vars) => `Sube como máximo ${v.max} archivos para ${v.doc === "bill" ? "la factura" : "el EOB"}.`,
@@ -377,7 +384,6 @@ export const es: Messages = {
     unlockFirst: "Primero desbloquea esta factura.",
     aiBusy: "El servicio de IA está ocupado. Inténtalo de nuevo en un minuto.",
     readFailed: "No se pudo leer el documento. Inténtalo de nuevo o pega el texto.",
-    unreadable: (v: Vars) => `No pudimos leer ${v.doc === "bill" ? "tu factura" : "tu EOB"}. Prueba con una foto más clara o pega el texto.`,
     letterFailed: "Esta vez no pudimos escribir la carta. Inténtalo de nuevo.",
     checkoutFailed: "No pudimos iniciar el pago. Inténtalo de nuevo.",
     verifyFailed: "No pudimos verificar el pago. Actualiza la página.",

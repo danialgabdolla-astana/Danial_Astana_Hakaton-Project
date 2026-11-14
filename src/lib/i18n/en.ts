@@ -350,6 +350,13 @@ export const en = {
     notCase: "This link isn’t a BillCheck case link.",
   },
   errors: {
+    notBill: (v: Vars) =>
+      "This doesn’t look like an itemized medical bill. Make sure it lists services, dates and charges." +
+      (v.photo ? " If it’s a photo, try a clearer one, or paste the text instead." : ""),
+    notEob: (v: Vars) =>
+      "This doesn’t look like an EOB. It usually says “This is not a bill” at the top." + (v.photo ? " If it’s a photo, try a clearer one, or paste the text instead." : ""),
+    notBoth: () =>
+      "Neither document looks right. The bill should list services, dates and charges; the EOB usually says “This is not a bill” at the top.",
     generic: "Something went wrong. Please try again.",
     invalidRequest: "Invalid request.",
     tooManyFiles: (v: Vars) => `Please upload at most ${v.max} files for the ${v.doc === "bill" ? "bill" : "EOB"}.`,
@@ -363,7 +370,6 @@ export const en = {
     unlockFirst: "Please unlock this bill first.",
     aiBusy: "The AI service is busy right now. Please try again in a minute.",
     readFailed: "Reading the document failed. Please try again, or paste the text instead.",
-    unreadable: (v: Vars) => `We couldn’t read your ${v.doc === "bill" ? "bill" : "EOB"}. Try a clearer photo or paste the text.`,
     letterFailed: "We couldn’t write the letter this time. Please try again.",
     checkoutFailed: "We couldn’t start checkout. Please try again.",
     verifyFailed: "We couldn’t verify the payment. Please refresh the page.",

@@ -167,14 +167,20 @@ export function Uploader() {
           title={U.billTitle}
           hint={U.billHint}
           state={bill}
-          onChange={setBill}
+          onChange={(s) => {
+            setBill(s);
+            setError("");
+          }}
           id="bill"
         />
         <DocInput
           title={U.eobTitle}
           hint={U.eobHint}
           state={eob}
-          onChange={setEob}
+          onChange={(s) => {
+            setEob(s);
+            setError("");
+          }}
           id="eob"
         />
       </div>

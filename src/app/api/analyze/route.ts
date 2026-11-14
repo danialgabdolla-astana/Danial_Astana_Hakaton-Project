@@ -58,7 +58,17 @@ export async function POST(request: Request) {
     }
 
     // Two extractions in parallel; the model only transcribes.
-    const [rawBill, rawEobs] = await Promise.all([extractBill(bill.docs), extractEobs(eob.docs)]);
+    // Each document is checked on its own, so the user hears about both if both are wrong.
+    const [billRes, eobRes] = await Promise.allSettled([extractBill(bill.docs), extractEobs(eob.docs)]);
+    if (billRes.status === "rejected" && eobRes.status === "rejected") {
+      const [b, e] = [billRes.reason, eobRes.reason];
+      if (b instanceof UserError && e instanceof UserError && b.code === "notBill" && e.code === "notEob") {
+        throw new UserError(`Bill: ${b.message} EOB: ${e.message}`, 422, "notBoth", { photoBill: b.vars.photo, photoEob: e.vars.photo });
+      }
+    }
+    if (billRes.status === "rejected") throw billRes.reason;
+    if (eobRes.status === "rejected") throw eobRes.reason;
+    const [rawBill, rawEobs] = [billRes.value, eobRes.value];
     const { bill: billDoc, eobs } = redactAndNumber(rawBill, rawEobs);
 
     // The deterministic rules engine decides every flag and every dollar amount.

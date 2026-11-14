@@ -364,6 +364,13 @@ export const fr: Messages = {
     notCase: "Ce lien n’est pas un lien de dossier BillCheck.",
   },
   errors: {
+    notBill: (v: Vars) =>
+      "Cela ne ressemble pas à une facture médicale détaillée. Vérifiez qu’elle indique les soins, les dates et les montants." +
+      (v.photo ? " S’il s’agit d’une photo, essayez-en une plus nette ou collez le texte." : ""),
+    notEob: (v: Vars) =>
+      "Cela ne ressemble pas à un EOB. Il porte généralement la mention « This is not a bill » en haut." + (v.photo ? " S’il s’agit d’une photo, essayez-en une plus nette ou collez le texte." : ""),
+    notBoth: () =>
+      "Aucun des deux documents ne semble correct. La facture doit indiquer les soins, les dates et les montants ; l’EOB porte généralement la mention « This is not a bill » en haut.",
     generic: "Une erreur s’est produite. Veuillez réessayer.",
     invalidRequest: "Requête non valide.",
     tooManyFiles: (v: Vars) => `Envoyez au maximum ${v.max} fichiers pour ${v.doc === "bill" ? "la facture" : "l’EOB"}.`,
@@ -377,7 +384,6 @@ export const fr: Messages = {
     unlockFirst: "Débloquez d’abord cette facture.",
     aiBusy: "Le service d’IA est occupé. Réessayez dans une minute.",
     readFailed: "La lecture du document a échoué. Réessayez ou collez le texte.",
-    unreadable: (v: Vars) => `Nous n’avons pas pu lire ${v.doc === "bill" ? "votre facture" : "votre EOB"}. Essayez une photo plus nette ou collez le texte.`,
     letterFailed: "Nous n’avons pas pu rédiger la lettre cette fois-ci. Veuillez réessayer.",
     checkoutFailed: "Impossible de lancer le paiement. Veuillez réessayer.",
     verifyFailed: "Impossible de vérifier le paiement. Actualisez la page.",
