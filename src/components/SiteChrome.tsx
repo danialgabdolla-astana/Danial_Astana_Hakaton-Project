@@ -36,7 +36,7 @@ export function LanguageSwitcher() {
 export function SiteHeader() {
   const m = useMessages();
   return (
-    <header className="no-print border-b border-stone-200 bg-white/80 backdrop-blur">
+    <header className="no-print border-b border-stone-200/70 bg-white/60 backdrop-blur">
       <nav className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:px-6" aria-label="Main">
         <Link href="/" className="flex items-center gap-2 text-lg font-semibold tracking-tight">
           <span aria-hidden className="grid h-8 w-8 place-items-center rounded-lg bg-teal-700 text-sm font-bold text-white">

@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fafaf9;
+  --background: #f7faf9;
   --foreground: #1c1917;
 }
 
@@ -10,8 +10,13 @@
   --color-foreground: var(--foreground);
 }
 
+/* "Mint haze": two soft glows at the top of every page (mint left, sky blue right) over a cool off-white. */
 body {
-  background: var(--background);
+  background:
+    radial-gradient(900px 520px at 8% -6%, #c9f4ea 0%, rgb(201 244 234 / 0) 62%),
+    radial-gradient(900px 560px at 96% 4%, #d6e6ff 0%, rgb(214 230 255 / 0) 58%),
+    var(--background);
+  background-repeat: no-repeat;
   color: var(--foreground);
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif;
   font-size: 16px;
@@ -25,6 +30,9 @@ body {
 
 /* Print only the dispute pack (letter / script) */
 @media print {
+  body {
+    background: #fff;
+  }
   body * {
     visibility: hidden;
   }
