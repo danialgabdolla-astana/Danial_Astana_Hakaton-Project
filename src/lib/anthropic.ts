@@ -5,16 +5,34 @@ import { BILL_SYSTEM, BILL_TOOL, EOB_SYSTEM, EOB_TOOL } from "./prompts/extract"
 
 export const MODEL = () => process.env.ANTHROPIC_MODEL || "claude-sonnet-5-5";
 
-/** A user-facing error: its message is safe to show in the UI. */
+export type ErrorVars = Record<string, string | number>;
+
+/**
+ * A user-facing error: its message (English) is safe to show in the UI. `code` + `vars` let the client show the
+ * same message in the user's language; unknown codes fall back to the English message.
+ */
 export class UserError extends Error {
-  constructor(message: string, public status = 400) {
+  constructor(
+    message: string,
+    public status = 400,
+    public code = "generic",
+    public vars: ErrorVars = {},
+  ) {
     super(message);
   }
+  toJSON() {
+    return { error: this.message, code: this.code, vars: this.vars };
+  }
+}
+
+/** JSON body for an error response: `{ error, code, vars }`. */
+export function errorBody(message: string, code: string, vars: ErrorVars = {}) {
+  return { error: message, code, vars };
 }
 
 let client: Anthropic | null = null;
 export function anthropic(): Anthropic {
-  if (!process.env.ANTHROPIC_API_KEY) throw new UserError("The AI service isn't configured on this server (missing ANTHROPIC_API_KEY).", 503);
+  if (!process.env.ANTHROPIC_API_KEY) throw new UserError("The AI service isn't configured on this server (missing ANTHROPIC_API_KEY).", 503, "notConfigured");
   client ??= new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, timeout: 90_000, maxRetries: 1 });
   return client;
 }
@@ -79,11 +97,11 @@ async function extractWithTool<T>(
       const status = (err as { status?: number }).status;
       // Log the status only — never the document content.
       console.error(`[extract:${label}] model call failed`, status ?? (err as Error).name);
-      if (status === 401) throw new UserError("The AI service rejected the server's API key.", 503);
-      if (status === 429 || status === 529) throw new UserError("The AI service is busy right now. Please try again in a minute.", 503);
-      if (status === 400 && /credit/i.test(String((err as Error).message))) throw new UserError("The AI service is out of credits on this server.", 503);
-      if (status === 404) throw new UserError(`The AI model "${MODEL()}" isn't available for this API key (set ANTHROPIC_MODEL).`, 503);
-      throw new UserError("Reading the document failed. Please try again, or paste the text instead.", 502);
+      if (status === 401) throw new UserError("The AI service rejected the server's API key.", 503, "notConfigured");
+      if (status === 429 || status === 529) throw new UserError("The AI service is busy right now. Please try again in a minute.", 503, "aiBusy");
+      if (status === 400 && /credit/i.test(String((err as Error).message))) throw new UserError("The AI service is out of credits on this server.", 503, "notConfigured");
+      if (status === 404) throw new UserError(`The AI model "${MODEL()}" isn't available for this API key (set ANTHROPIC_MODEL).`, 503, "notConfigured");
+      throw new UserError("Reading the document failed. Please try again, or paste the text instead.", 502, "readFailed");
     }
     const call = res.content.find((c) => c.type === "tool_use");
     const input = (call?.type === "tool_use" ? call.input : jsonFromText(res.content)) as Record<string, unknown>;
@@ -92,6 +110,8 @@ async function extractWithTool<T>(
       throw new UserError(
         `We couldn't read your ${label}${input.problem ? ` (${String(input.problem).slice(0, 140)})` : ""}. Try a clearer photo or paste the text.`,
         422,
+        "unreadable",
+        { doc: label },
       );
     }
 
@@ -119,9 +139,9 @@ async function extractWithTool<T>(
       continue;
     }
     console.error(`[extract:${label}] invalid JSON after retry`);
-    throw new UserError(`We couldn't read your ${label} reliably. Try a clearer photo or paste the text.`, 422);
+    throw new UserError(`We couldn't read your ${label} reliably. Try a clearer photo or paste the text.`, 422, "unreadable", { doc: label });
   }
-  throw new UserError("Extraction failed.", 500);
+  throw new UserError("Extraction failed.", 500, "readFailed");
 }
 
 const BillToolResult = BillDoc.omit({ lines: true }).extend({

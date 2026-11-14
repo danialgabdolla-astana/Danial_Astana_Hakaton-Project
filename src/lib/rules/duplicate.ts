@@ -16,19 +16,23 @@ export const duplicateCharge: Rule = ({ bill, matched, duplicateOf, context }) =
     let amount = line.billedAmount;
     let confidence: Confidence = "low";
     let basis = "the full billed amount (we couldn't find the insurer's numbers for it)";
+    let basisKey = "billed";
 
     if (eob && (eob.deductible ?? 0) > 0 && eob.allowedAmount != null) {
       amount = eob.allowedAmount;
       confidence = "high";
       basis = "the insurer's allowed amount, because your deductible applies";
+      basisKey = "deductible";
     } else if (eob && context.coinsurancePct != null) {
       amount = (eob.allowedAmount ?? line.billedAmount) * (context.coinsurancePct / 100);
       confidence = "high";
       basis = `your ${context.coinsurancePct}% coinsurance`;
+      basisKey = "coinsurance";
     } else if (eob) {
       amount = eob.patientResponsibility;
       confidence = "high";
       basis = "your share on the EOB for the same service";
+      basisKey = "eobShare";
     }
 
     flags.push({
@@ -43,6 +47,14 @@ export const duplicateCharge: Rule = ({ bill, matched, duplicateOf, context }) =
       amountAtStake: round2(amount),
       confidence,
       source: eob ? `EOB line ${eob.id} (processed once)` : "Rule: duplicate charge",
+      params: {
+        desc: line.description,
+        date: line.serviceDate,
+        onEob: !!eob,
+        basis: basisKey,
+        pct: context.coinsurancePct ?? null,
+        eobLine: eob?.id ?? null,
+      },
     });
   }
   return flags;

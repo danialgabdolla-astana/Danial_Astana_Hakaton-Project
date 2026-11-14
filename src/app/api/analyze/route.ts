@@ -1,4 +1,4 @@
-import { extractBill, extractEobs, UserError, type DocInput } from "@/lib/anthropic";
+import { errorBody, extractBill, extractEobs, UserError, type DocInput } from "@/lib/anthropic";
 import { analysisIdFor } from "@/lib/hash";
 import { clientIp, rateLimit } from "@/lib/ratelimit";
 import { redactAndNumber } from "@/lib/redact";
@@ -15,11 +15,14 @@ const MAX_TEXT = 30_000;
 async function readDocs(form: FormData, field: "bill" | "eob"): Promise<{ docs: DocInput[]; bytes: number }> {
   const files = form.getAll(field).filter((f): f is File => f instanceof File && f.size > 0);
   const text = String(form.get(`${field}Text`) ?? "").trim();
-  if (files.length > MAX_FILES_PER_DOC) throw new UserError(`Please upload at most ${MAX_FILES_PER_DOC} files for the ${field === "bill" ? "bill" : "EOB"}.`);
+  if (files.length > MAX_FILES_PER_DOC) throw new UserError(`Please upload at most ${MAX_FILES_PER_DOC} files for the ${field === "bill" ? "bill" : "EOB"}.`, 400, "tooManyFiles", {
+      max: MAX_FILES_PER_DOC,
+      doc: field,
+    });
   const docs: DocInput[] = [];
   let bytes = 0;
   for (const f of files) {
-    if (!ALLOWED.has(f.type)) throw new UserError(`"${f.name}" isn't a supported file. Use PDF, JPG or PNG.`, 415);
+    if (!ALLOWED.has(f.type)) throw new UserError(`"${f.name}" isn't a supported file. Use PDF, JPG or PNG.`, 415, "unsupportedFile", { name: f.name });
     bytes += f.size;
     // Files are read into memory only; nothing is written to disk.
     docs.push({ kind: "file", mediaType: f.type, base64: Buffer.from(await f.arrayBuffer()).toString("base64") });
@@ -32,7 +35,9 @@ export async function POST(request: Request) {
   const limit = rateLimit(`analyze:${clientIp(request)}`, 10);
   if (!limit.ok) {
     return Response.json(
-      { error: `You've run a lot of checks in the last hour. Please try again in ${Math.ceil(limit.retryAfterSec / 60)} minutes.` },
+      errorBody(`You've run a lot of checks in the last hour. Please try again in ${Math.ceil(limit.retryAfterSec / 60)} minutes.`, "rateLimited", {
+        minutes: Math.ceil(limit.retryAfterSec / 60),
+      }),
       { status: 429 },
     );
   }
@@ -41,9 +46,9 @@ export async function POST(request: Request) {
     const form = await request.formData();
     const bill = await readDocs(form, "bill");
     const eob = await readDocs(form, "eob");
-    if (bill.docs.length === 0) throw new UserError("Please add your itemized bill (a file or pasted text).");
-    if (eob.docs.length === 0) throw new UserError("Please add your EOB from the insurer (a file or pasted text).");
-    if (bill.bytes + eob.bytes > MAX_TOTAL_BYTES) throw new UserError("Files are too large together (max about 4 MB). Try fewer pages or smaller photos.", 413);
+    if (bill.docs.length === 0) throw new UserError("Please add your itemized bill (a file or pasted text).", 400, "missingBill");
+    if (eob.docs.length === 0) throw new UserError("Please add your EOB from the insurer (a file or pasted text).", 400, "missingEob");
+    if (bill.bytes + eob.bytes > MAX_TOTAL_BYTES) throw new UserError("Files are too large together (max about 4 MB). Try fewer pages or smaller photos.", 413, "tooLarge");
 
     let context: PlanContext = {};
     const rawContext = form.get("context");
@@ -71,8 +76,8 @@ export async function POST(request: Request) {
     };
     return Response.json(analysis);
   } catch (err) {
-    if (err instanceof UserError) return Response.json({ error: err.message }, { status: err.status });
+    if (err instanceof UserError) return Response.json(err.toJSON(), { status: err.status });
     console.error("[analyze] unexpected error", (err as Error)?.name);
-    return Response.json({ error: "Something went wrong while checking your bill. Please try again." }, { status: 500 });
+    return Response.json(errorBody("Something went wrong while checking your bill. Please try again.", "generic"), { status: 500 });
   }
 }

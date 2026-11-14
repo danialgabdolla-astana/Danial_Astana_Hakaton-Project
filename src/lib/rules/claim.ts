@@ -26,6 +26,7 @@ export const billExceedsEob: Rule = ({ bill, eobs, eobLines, eobTotal, matches }
       amountAtStake: gap,
       confidence: "high",
       source: "EOB total vs. bill balance",
+      params: { balance: bill.patientBalance, eobTotal, allOut: eobLines.length > 0 && eobLines.every((l) => l.networkStatus === "out") },
     },
   ];
 };
@@ -53,6 +54,7 @@ export const noInsuranceApplied: Rule = ({ bill, eobs, eobLines, eobTotal }) => 
       amountAtStake: gap,
       confidence: "high",
       source: "Bill: insurance paid/adjusted = $0",
+      params: {},
     },
   ];
 };
@@ -79,6 +81,7 @@ export const balanceBillingInNetwork: Rule = ({ bill, matched, eobTotal }) => {
       amountAtStake: gap,
       confidence: "high",
       source: `EOB lines ${inNetwork.map((l) => l.id).join(", ")} (billed − allowed)`,
+      params: { gap, lines: inNetwork.map((l) => l.id).join(", ") },
     },
   ];
 };
@@ -98,6 +101,7 @@ export const notItemized: Rule = ({ bill }) => {
       amountAtStake: 0,
       confidence: "high",
       source: "Rule: itemized bill required",
+      params: {},
     },
   ];
 };

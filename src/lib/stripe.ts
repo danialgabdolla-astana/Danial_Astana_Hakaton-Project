@@ -6,7 +6,7 @@ let client: Stripe | null = null;
 /** Stripe in test mode. Without a key we fail loudly — we never unlock for free. */
 export function stripe(): Stripe {
   const key = process.env.STRIPE_SECRET_KEY;
-  if (!key) throw new UserError("Payments aren't set up on this server yet (missing STRIPE_SECRET_KEY).", 503);
+  if (!key) throw new UserError("Payments aren't set up on this server yet (missing STRIPE_SECRET_KEY).", 503, "notConfigured");
   client ??= new Stripe(key);
   return client;
 }

@@ -20,6 +20,7 @@ export const lineNotOnEob: Rule = ({ bill, eobs, matched, duplicateOf }) => {
         amountAtStake: round2(l.billedAmount),
         confidence: "medium",
         source: "Rule: no matching EOB line",
+        params: { desc: l.description },
       }),
     );
 };
@@ -82,6 +83,7 @@ export const possibleSurpriseBill: Rule = ({ eobLines, context }) => {
       amountAtStake: round2(amount),
       confidence,
       source: `EOB line ${l.id} (out-of-network)`,
+      params: { emergency: Boolean(emergency), kind, facilityKnown: Boolean(facilityKnown), estimated: confidence === "medium", eobLine: l.id },
     });
   }
   return flags;
@@ -91,13 +93,13 @@ export const possibleSurpriseBill: Rule = ({ eobLines, context }) => {
  * Pairs that are commonly billed together but are often included in one another.
  * [component, includedIn, note]. Framed as a question, never an accusation.
  */
-const UNBUNDLING_PAIRS: { part: RegExp; whole: RegExp; note: string }[] = [
-  { part: /^80048$/, whole: /^80053$/, note: "a basic metabolic panel is part of the comprehensive panel" },
-  { part: /^(82947|84295|84132|82565|82310)$/, whole: /^(80048|80053)$/, note: "single tests that are already included in the metabolic panel" },
-  { part: /^(85027|85004|85007|85014|85018)$/, whole: /^85025$/, note: "components of a complete blood count with differential" },
-  { part: /^(93005|93010)$/, whole: /^93000$/, note: "parts of a complete ECG" },
-  { part: /^99070$/, whole: /^(9928[1-5]|992[0-1]\d)$/, note: "supplies that are usually included in the visit or facility fee" },
-  { part: /^9921[1-5]$/, whole: /^9928[1-5]$/, note: "a second office visit billed on the same day as an ER visit" },
+const UNBUNDLING_PAIRS: { key: string; part: RegExp; whole: RegExp; note: string }[] = [
+  { key: "bmp", part: /^80048$/, whole: /^80053$/, note: "a basic metabolic panel is part of the comprehensive panel" },
+  { key: "panelTests", part: /^(82947|84295|84132|82565|82310)$/, whole: /^(80048|80053)$/, note: "single tests that are already included in the metabolic panel" },
+  { key: "cbc", part: /^(85027|85004|85007|85014|85018)$/, whole: /^85025$/, note: "components of a complete blood count with differential" },
+  { key: "ecg", part: /^(93005|93010)$/, whole: /^93000$/, note: "parts of a complete ECG" },
+  { key: "supplies", part: /^99070$/, whole: /^(9928[1-5]|992[0-1]\d)$/, note: "supplies that are usually included in the visit or facility fee" },
+  { key: "officeEr", part: /^9921[1-5]$/, whole: /^9928[1-5]$/, note: "a second office visit billed on the same day as an ER visit" },
 ];
 
 export const possibleUnbundling: Rule = ({ bill }) => {
@@ -120,6 +122,7 @@ export const possibleUnbundling: Rule = ({ bill }) => {
         amountAtStake: round2(part.billedAmount),
         confidence: "low",
         source: `Rule: commonly bundled codes ${pc} + ${baseCode(whole.code)}`,
+        params: { part: part.description, whole: whole.description, pair: pair.key, partCode: pc, wholeCode: baseCode(whole.code) },
       });
       break;
     }

@@ -98,8 +98,11 @@ export const Flag = z.object({
   amountAtStake: z.number(),
   confidence: Confidence,
   source: z.string(),
+  /** Values the client uses to show this flag in other languages (the English text above stays the source of truth). */
+  params: z.record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()])).optional(),
 });
 export type Flag = z.infer<typeof Flag>;
+export type FlagParams = NonNullable<Flag["params"]>;
 
 export const Summary = z.object({
   issueCount: z.number(),
@@ -135,7 +138,14 @@ export const DisputePack = z.object({
   }),
 });
 
-export const Deadline = z.object({ title: z.string(), detail: z.string(), daysFromNow: z.number().nullable() });
+/** `key` + `vars` let the client show a deadline in the user's language; `title`/`detail` are the English text. */
+export const Deadline = z.object({
+  key: z.string().optional(),
+  vars: z.record(z.string(), z.union([z.string(), z.number()])).optional(),
+  title: z.string(),
+  detail: z.string(),
+  daysFromNow: z.number().nullable(),
+});
 export type Deadline = z.infer<typeof Deadline>;
 
 /** A dispute pack as the client stores it: the model's output plus rule-based deadlines. */
