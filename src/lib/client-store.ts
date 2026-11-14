@@ -9,6 +9,7 @@ const K = {
   unlock: (scope: string) => `bc:unlock:${scope}`,
   pack: (id: string) => `bc:pack:${id}`,
   disputes: "bc:disputes",
+  details: "bc:details",
 };
 
 function get<T>(key: string): T | null {
@@ -46,6 +47,10 @@ export const store = {
 
   savePack: (id: string, pack: unknown) => set(K.pack(id), pack),
   getPack: <T>(id: string) => get<T>(K.pack(id)),
+
+  /** Name, address etc. typed into the letter. Kept only in this browser, never sent to the server. */
+  getDetails: () => get<Record<string, string>>(K.details) ?? {},
+  saveDetails: (d: Record<string, string>) => set(K.details, d),
 
   getDisputes: <T>() => get<T[]>(K.disputes) ?? [],
   saveDisputes: (d: unknown[]) => set(K.disputes, d),

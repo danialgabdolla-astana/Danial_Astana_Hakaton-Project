@@ -8,8 +8,26 @@ import { downloadText } from "@/lib/ics";
 import type { Analysis } from "@/lib/schemas";
 import type { DisputePack } from "@/lib/dispute";
 import { addDays, ensureDispute, getDisputes, saveDisputes, today } from "@/lib/tracker";
+import { MULTILINE, fillPlaceholders, findPlaceholders, letterDate } from "@/lib/placeholders";
 
 type Tab = "letter" | "insurer" | "script" | "deadlines";
+
+function fillPack(p: DisputePack, values: Record<string, string>): DisputePack {
+  const f = (t: string) => fillPlaceholders(t, values);
+  const s = p.phoneScript;
+  return {
+    ...p,
+    billingLetter: f(p.billingLetter),
+    insurerLetter: p.insurerLetter ? f(p.insurerLetter) : p.insurerLetter,
+    phoneScript: {
+      opening: f(s.opening),
+      asks: s.asks.map(f),
+      ifTheyPushBack: s.ifTheyPushBack.map(f),
+      escalation: s.escalation.map(f),
+      writeDown: s.writeDown.map(f),
+    },
+  };
+}
 
 function scriptText(p: DisputePack): string {
   const s = p.phoneScript;
@@ -26,7 +44,9 @@ function scriptText(p: DisputePack): string {
 
 export function DisputePackView({ analysis, token }: { analysis: Analysis; token: string }) {
   const router = useRouter();
-  const [pack, setPack] = useState<DisputePack | null>(() => store.getPack<DisputePack>(analysis.analysisId));
+  const [rawPack, setPack] = useState<DisputePack | null>(() => store.getPack<DisputePack>(analysis.analysisId));
+  const [details, setDetails] = useState<Record<string, string>>(() => store.getDetails());
+  const [showDetails, setShowDetails] = useState(false);
   const [tab, setTab] = useState<Tab>("letter");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -65,7 +85,13 @@ export function DisputePackView({ analysis, token }: { analysis: Analysis; token
     router.push("/tracker");
   }
 
-  if (!pack) {
+  function updateDetail(name: string, value: string) {
+    const next = { ...details, [name]: value };
+    setDetails(next);
+    store.saveDetails(next);
+  }
+
+  if (!rawPack) {
     return (
       <section className="rounded-2xl border border-teal-200 bg-white p-6 text-center">
         <p className="text-sm font-medium text-teal-800">✓ Unlocked</p>
@@ -88,6 +114,24 @@ export function DisputePackView({ analysis, token }: { analysis: Analysis; token
       </section>
     );
   }
+
+  const s = rawPack.phoneScript;
+  const fields = findPlaceholders(
+    rawPack.billingLetter,
+    rawPack.insurerLetter ?? "",
+    s.opening,
+    ...s.asks,
+    ...s.ifTheyPushBack,
+    ...s.escalation,
+    ...s.writeDown,
+  );
+  const values: Record<string, string> = { Date: letterDate(), ...details };
+  const filledCount = fields.filter((f) => values[f]?.trim()).length;
+  const pack = fillPack(rawPack, values);
+  const hints: Record<string, string> = {
+    "Account number": analysis.bill.accountRef ? `on your bill, ends in ${analysis.bill.accountRef.slice(-4)}` : "on your bill",
+    "Claim number": analysis.eobs[0]?.claimRef ? `on your EOB, ends in ${analysis.eobs[0].claimRef.slice(-4)}` : "on your EOB",
+  };
 
   const tabs: { id: Tab; label: string }[] = [
     { id: "letter", label: "Letter to billing" },
@@ -112,6 +156,44 @@ export function DisputePackView({ analysis, token }: { analysis: Analysis; token
           </button>
         ))}
       </div>
+
+      {fields.length > 0 && tab !== "deadlines" && (
+        <div className="no-print border-b border-stone-200 bg-stone-50 px-5 py-3">
+          <button
+            onClick={() => setShowDetails((v) => !v)}
+            aria-expanded={showDetails}
+            className="flex w-full items-center justify-between gap-3 text-left text-sm"
+          >
+            <span>
+              <span className="font-medium">Your details</span>{" "}
+              <span className="text-stone-600">
+                — {filledCount} of {fields.length} filled. Stays in this browser; never sent to our server.
+              </span>
+            </span>
+            <span className="text-teal-800">{showDetails ? "Hide" : "Fill in"}</span>
+          </button>
+          {showDetails && (
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              {fields.map((name) => {
+                const id = `detail-${name.replace(/\W+/g, "-")}`;
+                const common = {
+                  id,
+                  value: values[name] ?? "",
+                  placeholder: hints[name] ?? "",
+                  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => updateDetail(name, e.target.value),
+                  className: "w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm",
+                };
+                return (
+                  <label key={name} htmlFor={id} className={`block text-sm ${MULTILINE.has(name) ? "sm:col-span-2" : ""}`}>
+                    <span className="mb-1 block text-stone-700">{name}</span>
+                    {MULTILINE.has(name) ? <textarea rows={2} {...common} /> : <input type="text" {...common} />}
+                  </label>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="p-5">
         {tab === "deadlines" ? (
@@ -164,7 +246,9 @@ export function DisputePackView({ analysis, token }: { analysis: Analysis; token
       </div>
 
       <div className="no-print flex flex-wrap items-center justify-between gap-3 border-t border-stone-200 bg-stone-50 p-4">
-        <p className="text-sm text-stone-600">Fill in the [brackets], send it, then track the dispute until it&apos;s resolved.</p>
+        <p className="text-sm text-stone-600">
+          {filledCount < fields.length ? "Fill in your details above, send it, " : "Send it, "}then track the dispute until it&apos;s resolved.
+        </p>
         <div className="flex gap-2">
           <button onClick={markSent} className="rounded-lg bg-teal-700 px-4 py-2 text-sm font-medium text-white hover:bg-teal-800">
             I sent the letter → track it
