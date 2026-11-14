@@ -83,10 +83,7 @@ async function extractWithTool<T>(
       if (status === 429 || status === 529) throw new UserError("The AI service is busy right now. Please try again in a minute.", 503);
       if (status === 400 && /credit/i.test(String((err as Error).message))) throw new UserError("The AI service is out of credits on this server.", 503);
       if (status === 404) throw new UserError(`The AI model "${MODEL()}" isn't available for this API key (set ANTHROPIC_MODEL).`, 503);
-      // The API's own message (never contains document content or keys) helps diagnose configuration issues.
-      const detail = String((err as Error).message ?? "").replace(/sk-[\w-]+/g, "***").slice(0, 220);
-      console.error(`[extract:${label}] detail`, detail);
-      throw new UserError(`Reading the document failed (${status ?? (err as Error).name}${status === 400 ? `: ${detail}` : ""}). Please try again.`, 502);
+      throw new UserError("Reading the document failed. Please try again, or paste the text instead.", 502);
     }
     const call = res.content.find((c) => c.type === "tool_use");
     const input = (call?.type === "tool_use" ? call.input : jsonFromText(res.content)) as Record<string, unknown>;
