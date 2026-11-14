@@ -5,7 +5,7 @@ $19 per bill. No percentage of savings. No insurance or bank login.
 
 Business Cup 2.0 · Track 01 — MONEY · B2C web app for working adults in the US (25–45).
 
-- **Live demo:** https://financebro-zeta.vercel.app → click **Try a sample bill** (expect **$645**), or [the surprise anesthesia case](https://financebro-zeta.vercel.app/check?sample=2) (expect **$2,200**)
+- **Live demo:** https://mybillcheck.vercel.app → click **Try a sample bill** (expect **$645**), or [the surprise anesthesia case](https://mybillcheck.vercel.app/check?sample=2) (expect **$2,200**)
 - No sign-up, no login. Test payments: card **4242 4242 4242 4242**, any future date, any CVC/ZIP.
 
 ---
