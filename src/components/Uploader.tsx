@@ -1,0 +1,289 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { prepareFile } from "@/lib/compress";
+import { store } from "@/lib/client-store";
+import type { Analysis } from "@/lib/schemas";
+
+const ACCEPT = "application/pdf,image/jpeg,image/png,image/webp";
+const STEPS = ["Reading your bill…", "Reading your EOB…", "Matching bill lines to your EOB…", "Checking 8 billing rules…", "Adding up what you can dispute…"];
+
+type DocState = { files: File[]; text: string; mode: "file" | "text" };
+const empty = (): DocState => ({ files: [], text: "", mode: "file" });
+
+export function Uploader() {
+  const router = useRouter();
+  const [bill, setBill] = useState<DocState>(empty);
+  const [eob, setEob] = useState<DocState>(empty);
+  const [showPlan, setShowPlan] = useState(false);
+  const [plan, setPlan] = useState({ deductible: "", deductibleMet: "", coinsurancePct: "", inNetwork: "unknown" });
+  const [busy, setBusy] = useState(false);
+  const [step, setStep] = useState(0);
+  const [error, setError] = useState("");
+  const startedSample = useRef(false);
+
+  useEffect(() => {
+    if (!busy) return;
+    const t = setInterval(() => setStep((s) => Math.min(s + 1, STEPS.length - 1)), 4500);
+    return () => clearInterval(t);
+  }, [busy]);
+
+  async function submit(billFiles: File[], billText: string, eobFiles: File[], eobText: string, sample = false) {
+    setError("");
+    if (!billFiles.length && !billText.trim()) return setError("Add your itemized bill — a PDF, a photo, or pasted text.");
+    if (!eobFiles.length && !eobText.trim()) return setError("Add your EOB (Explanation of Benefits) from your insurer.");
+    setStep(0);
+    setBusy(true);
+    try {
+      const form = new FormData();
+      for (const f of billFiles) form.append("bill", await prepareFile(f));
+      for (const f of eobFiles) form.append("eob", await prepareFile(f));
+      if (billText.trim()) form.append("billText", billText);
+      if (eobText.trim()) form.append("eobText", eobText);
+      if (!sample) {
+        const ctx: Record<string, unknown> = {};
+        if (plan.deductible) ctx.deductible = Number(plan.deductible);
+        if (plan.deductibleMet) ctx.deductibleMet = Number(plan.deductibleMet);
+        if (plan.coinsurancePct) ctx.coinsurancePct = Number(plan.coinsurancePct);
+        if (plan.inNetwork !== "unknown") ctx.inNetwork = plan.inNetwork === "yes";
+        form.append("context", JSON.stringify(ctx));
+      }
+      const res = await fetch("/api/analyze", { method: "POST", body: form });
+      const data = await res.json().catch(() => ({ error: "The server returned an unexpected response." }));
+      if (!res.ok) throw new Error(data.error ?? "Something went wrong. Please try again.");
+      const analysis = data as Analysis;
+      store.saveAnalysis(analysis);
+      router.push(`/results?id=${analysis.analysisId}`);
+    } catch (e) {
+      setError((e as Error).message);
+      setBusy(false);
+    }
+  }
+
+  async function trySample() {
+    setError("");
+    setStep(0);
+    setBusy(true);
+    try {
+      const [b, e] = await Promise.all(
+        ["/samples/riverside-bill.pdf", "/samples/summit-eob.pdf"].map(async (u) => {
+          const blob = await fetch(u).then((r) => r.blob());
+          return new File([blob], u.split("/").pop()!, { type: "application/pdf" });
+        }),
+      );
+      setBill({ files: [b], text: "", mode: "file" });
+      setEob({ files: [e], text: "", mode: "file" });
+      await submit([b], "", [e], "", true);
+    } catch (e) {
+      setError((e as Error).message);
+      setBusy(false);
+    }
+  }
+
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("sample") === "1") {
+      // Deferred so the sample starts after the first paint (landing page "Try a sample bill" deep link).
+      const t = setTimeout(() => {
+        if (startedSample.current) return;
+        startedSample.current = true;
+        trySample();
+      }, 0);
+      return () => clearTimeout(t);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (busy) {
+    return (
+      <div className="rounded-2xl border border-stone-200 bg-white p-8 text-center shadow-sm" role="status" aria-live="polite">
+        <div className="mx-auto mb-5 h-10 w-10 animate-spin rounded-full border-4 border-teal-700 border-t-transparent" aria-hidden />
+        <p className="text-lg font-medium">{STEPS[step]}</p>
+        <p className="mt-2 text-sm text-stone-500">This usually takes 20–60 seconds. Your files are processed in memory and never stored.</p>
+        <ol className="mx-auto mt-6 max-w-xs space-y-1 text-left text-sm">
+          {STEPS.map((s, i) => (
+            <li key={s} className={i < step ? "text-teal-700" : i === step ? "font-medium" : "text-stone-400"}>
+              {i < step ? "✓" : i === step ? "•" : "○"} {s.replace("…", "")}
+            </li>
+          ))}
+        </ol>
+      </div>
+    );
+  }
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        submit(bill.files, bill.mode === "text" ? bill.text : "", eob.files, eob.mode === "text" ? eob.text : "");
+      }}
+      className="space-y-6"
+    >
+      <div className="grid gap-4 md:grid-cols-2">
+        <DocInput
+          title="1. Your itemized bill"
+          hint="From the hospital or doctor's office. Ask for the itemized version with codes if you only have a summary."
+          state={bill}
+          onChange={setBill}
+          id="bill"
+        />
+        <DocInput
+          title="2. Your EOB"
+          hint="The Explanation of Benefits from your insurer — usually in your insurer's app or mailed. It says “This is not a bill”."
+          state={eob}
+          onChange={setEob}
+          id="eob"
+        />
+      </div>
+
+      <div className="rounded-2xl border border-stone-200 bg-white p-4">
+        <button
+          type="button"
+          onClick={() => setShowPlan((v) => !v)}
+          className="text-sm font-medium text-teal-800 underline-offset-2 hover:underline"
+          aria-expanded={showPlan}
+        >
+          {showPlan ? "− Hide" : "+ Add"} plan details (optional — makes amounts more precise)
+        </button>
+        {showPlan && (
+          <div className="mt-4 grid gap-3 sm:grid-cols-4">
+            <NumField label="Deductible ($)" value={plan.deductible} onChange={(v) => setPlan({ ...plan, deductible: v })} />
+            <NumField label="Met so far ($)" value={plan.deductibleMet} onChange={(v) => setPlan({ ...plan, deductibleMet: v })} />
+            <NumField label="Coinsurance (%)" value={plan.coinsurancePct} onChange={(v) => setPlan({ ...plan, coinsurancePct: v })} />
+            <label className="text-sm">
+              <span className="text-stone-600">Provider in-network?</span>
+              <select
+                className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2"
+                value={plan.inNetwork}
+                onChange={(e) => setPlan({ ...plan, inNetwork: e.target.value })}
+              >
+                <option value="unknown">Not sure</option>
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+              </select>
+            </label>
+          </div>
+        )}
+      </div>
+
+      {error && (
+        <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-red-800">
+          {error}
+        </p>
+      )}
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <button type="submit" className="rounded-xl bg-teal-700 px-6 py-3 text-base font-semibold text-white shadow-sm hover:bg-teal-800">
+          Check my bill — free
+        </button>
+        <button type="button" onClick={trySample} className="rounded-xl border border-stone-300 bg-white px-6 py-3 text-base font-medium hover:bg-stone-100">
+          Try a sample bill
+        </button>
+      </div>
+      <p className="text-sm text-stone-500">
+        🔒 Files are processed in memory and never stored. We mask names, member IDs and account numbers. Uninsured? Cash-price help is coming soon.
+      </p>
+    </form>
+  );
+}
+
+function DocInput({ title, hint, state, onChange, id }: { title: string; hint: string; state: DocState; onChange: (s: DocState) => void; id: string }) {
+  const [drag, setDrag] = useState(false);
+  const add = (list: FileList | null) => {
+    if (!list) return;
+    const files = [...state.files, ...Array.from(list)].slice(0, 3);
+    onChange({ ...state, files });
+  };
+  return (
+    <div className="rounded-2xl border border-stone-200 bg-white p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h2 className="font-semibold">{title}</h2>
+          <p className="mt-1 text-sm text-stone-600">{hint}</p>
+        </div>
+      </div>
+      <div className="mt-3 flex gap-1 rounded-lg bg-stone-100 p-1 text-sm" role="tablist">
+        {(["file", "text"] as const).map((m) => (
+          <button
+            key={m}
+            type="button"
+            role="tab"
+            aria-selected={state.mode === m}
+            onClick={() => onChange({ ...state, mode: m })}
+            className={`flex-1 rounded-md px-3 py-1.5 ${state.mode === m ? "bg-white font-medium shadow-sm" : "text-stone-600"}`}
+          >
+            {m === "file" ? "Upload PDF / photo" : "Paste text"}
+          </button>
+        ))}
+      </div>
+      {state.mode === "file" ? (
+        <>
+          <label
+            htmlFor={`${id}-files`}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDrag(true);
+            }}
+            onDragLeave={() => setDrag(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setDrag(false);
+              add(e.dataTransfer.files);
+            }}
+            className={`mt-3 flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed px-4 py-8 text-center text-sm transition ${
+              drag ? "border-teal-600 bg-teal-50" : "border-stone-300 hover:border-teal-600"
+            }`}
+          >
+            <span className="font-medium text-teal-800">Choose files</span>
+            <span className="text-stone-500">or drag them here · PDF, JPG, PNG · up to 3 files</span>
+          </label>
+          <input id={`${id}-files`} type="file" accept={ACCEPT} multiple className="sr-only" onChange={(e) => add(e.target.files)} />
+          {state.files.length > 0 && (
+            <ul className="mt-3 space-y-1 text-sm">
+              {state.files.map((f, i) => (
+                <li key={i} className="flex items-center justify-between rounded-lg bg-stone-50 px-3 py-2">
+                  <span className="truncate">📄 {f.name}</span>
+                  <button
+                    type="button"
+                    className="ml-2 text-stone-500 hover:text-red-700"
+                    aria-label={`Remove ${f.name}`}
+                    onClick={() => onChange({ ...state, files: state.files.filter((_, j) => j !== i) })}
+                  >
+                    ✕
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
+      ) : (
+        <label className="mt-3 block text-sm">
+          <span className="sr-only">Paste the document text</span>
+          <textarea
+            value={state.text}
+            onChange={(e) => onChange({ ...state, text: e.target.value })}
+            rows={8}
+            placeholder="Copy the text from the PDF or your insurer's website and paste it here…"
+            className="w-full rounded-xl border border-stone-300 p-3"
+          />
+        </label>
+      )}
+    </div>
+  );
+}
+
+function NumField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  return (
+    <label className="text-sm">
+      <span className="text-stone-600">{label}</span>
+      <input
+        type="number"
+        inputMode="decimal"
+        min={0}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2"
+      />
+    </label>
+  );
+}
