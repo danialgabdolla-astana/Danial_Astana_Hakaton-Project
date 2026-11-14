@@ -160,6 +160,18 @@ export const fr: Messages = {
     needEob: "Ajoutez l’EOB (relevé de prestations) de votre assureur.",
   },
   results: {
+    breakdown: (parts: string[], total: string) => `${parts.join(" + ")} = ${total} contestables`,
+    breakdownClaim: (total: string, reason: string) => `${total} contestables : ${reason}`,
+    reasons: {
+      DUPLICATE_CHARGE: "facturé deux fois",
+      BILL_EXCEEDS_EOB: "votre facture dépasse ce que votre EOB indique",
+      LINE_NOT_ON_EOB: "absent de votre EOB",
+      NO_INSURANCE_APPLIED: "assurance non appliquée à la facture",
+      BALANCE_BILLING_IN_NETWORK: "la remise du réseau qu’on vous facture",
+      POSSIBLE_SURPRISE_BILL: "au-delà de votre part dans le réseau",
+      NOT_ITEMIZED: "facture non détaillée",
+      POSSIBLE_UNBUNDLING: "peut-être regroupé",
+    },
     notFoundTitle: "Nous n’avons pas trouvé cette vérification",
     notFoundBody: "Les résultats sont enregistrés uniquement dans le navigateur où vous avez fait la vérification. Si vous avez gardé un lien privé du dossier, ouvrez-le ici.",
     overcharged: "On vous facture peut-être trop :",
@@ -180,10 +192,15 @@ export const fr: Messages = {
     paidSingle: "Paiement confirmé : cette facture est débloquée. 🎉",
   },
   flag: {
+    included: "Déjà compris ci-dessus",
+    notAdded: "Non ajouté au total",
     conf: { high: "Confiance élevée", medium: "Confiance moyenne", low: "À demander" },
     source: (s: string) => `Source : ${s}`,
   },
   sbs: {
+    chargesListed: "Frais indiqués sur la facture",
+    paidAdjustments: "Paiements de l’assurance et ajustements",
+    otherBalance: "Autres frais ou solde antérieur",
     short: {
       DUPLICATE_CHARGE: "Doublon",
       BILL_EXCEEDS_EOB: "Au-dessus de l’EOB",

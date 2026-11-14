@@ -11,7 +11,18 @@ const CONF_CLASS: Record<Flag["confidence"], string> = {
   low: "bg-sky-100 text-sky-900",
 };
 
-export function FlagCard({ flag, active, onSelect }: { flag: Flag; active: boolean; onSelect: () => void }) {
+export function FlagCard({
+  flag,
+  status,
+  active,
+  onSelect,
+}: {
+  flag: Flag;
+  /** Whether this amount is part of the total, already inside it, or a separate question. */
+  status?: "counted" | "included" | "notAdded";
+  active: boolean;
+  onSelect: () => void;
+}) {
   const m = useMessages();
   const t = flagText(flag, m);
   return (
@@ -23,11 +34,16 @@ export function FlagCard({ flag, active, onSelect }: { flag: Flag; active: boole
     >
       <div className="flex flex-wrap items-start justify-between gap-2">
         <h3 className="font-semibold">{t.title}</h3>
-        {flag.amountAtStake > 0 && <span className="text-lg font-semibold tabular-nums text-teal-800">{formatUsd(flag.amountAtStake)}</span>}
+        {flag.amountAtStake > 0 && (
+          <span className={`text-lg font-semibold tabular-nums ${status && status !== "counted" ? "text-stone-400" : "text-teal-800"}`}>{formatUsd(flag.amountAtStake)}</span>
+        )}
       </div>
       <p className="mt-1 text-sm text-stone-700">{t.explanation}</p>
       <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
         <span className={`rounded-full px-2 py-0.5 font-medium ${CONF_CLASS[flag.confidence]}`}>{m.flag.conf[flag.confidence]}</span>
+        {(status === "included" || status === "notAdded") && (
+          <span className="rounded-full bg-stone-100 px-2 py-0.5 font-medium text-stone-700">{status === "included" ? m.flag.included : m.flag.notAdded}</span>
+        )}
         <span className="text-stone-500">{m.flag.source(t.source)}</span>
       </div>
     </button>

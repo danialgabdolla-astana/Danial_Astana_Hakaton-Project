@@ -160,6 +160,18 @@ export const es: Messages = {
     needEob: "Agrega tu EOB (Explicación de Beneficios) de tu aseguradora.",
   },
   results: {
+    breakdown: (parts: string[], total: string) => `${parts.join(" + ")} = ${total} que puedes disputar`,
+    breakdownClaim: (total: string, reason: string) => `${total} que puedes disputar: ${reason}`,
+    reasons: {
+      DUPLICATE_CHARGE: "cobrado dos veces",
+      BILL_EXCEEDS_EOB: "tu factura supera lo que tu EOB dice que debes",
+      LINE_NOT_ON_EOB: "no está en tu EOB",
+      NO_INSURANCE_APPLIED: "el seguro no se aplicó a la factura",
+      BALANCE_BILLING_IN_NETWORK: "el descuento de la red cobrado a ti",
+      POSSIBLE_SURPRISE_BILL: "por encima de tu costo compartido dentro de la red",
+      NOT_ITEMIZED: "factura sin detalle",
+      POSSIBLE_UNBUNDLING: "posiblemente agrupado",
+    },
     notFoundTitle: "No encontramos esa revisión",
     notFoundBody: "Los resultados se guardan solo en el navegador donde hiciste la revisión. Si guardaste un enlace privado del caso, ábrelo aquí.",
     overcharged: "Posible cobro de más:",
@@ -180,10 +192,15 @@ export const es: Messages = {
     paidSingle: "Pago confirmado: esta factura está desbloqueada. 🎉",
   },
   flag: {
+    included: "Ya incluido arriba",
+    notAdded: "No se suma al total",
     conf: { high: "Confianza alta", medium: "Confianza media", low: "Vale la pena preguntar" },
     source: (s: string) => `Fuente: ${s}`,
   },
   sbs: {
+    chargesListed: "Cargos en la factura",
+    paidAdjustments: "Pagos del seguro y ajustes",
+    otherBalance: "Otros cargos o saldo anterior",
     short: {
       DUPLICATE_CHARGE: "Duplicado",
       BILL_EXCEEDS_EOB: "Más que el EOB",

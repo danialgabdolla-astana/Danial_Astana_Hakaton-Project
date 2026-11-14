@@ -19,7 +19,7 @@ export const RULES: Rule[] = [
 ];
 
 /** Claim-level rules describe the whole gap between the bill and the EOB. */
-const CLAIM_LEVEL: RuleId[] = ["BILL_EXCEEDS_EOB", "NO_INSURANCE_APPLIED", "BALANCE_BILLING_IN_NETWORK"];
+export const CLAIM_LEVEL: RuleId[] = ["BILL_EXCEEDS_EOB", "NO_INSURANCE_APPLIED", "BALANCE_BILLING_IN_NETWORK"];
 
 function lineKey(l: BillLine): string {
   const code = baseCode(l.code);

@@ -1,6 +1,6 @@
 "use client";
 
-import { formatUsd } from "@/lib/money";
+import { formatUsd, round2 } from "@/lib/money";
 import type { Analysis, EobLine, Flag } from "@/lib/schemas";
 import { useMessages } from "@/lib/i18n/client";
 
@@ -14,6 +14,9 @@ export function SideBySide({ analysis, activeFlag }: { analysis: Analysis; activ
   const flagsForEob = (id: string) => analysis.flags.filter((f) => f.eobLineIds.includes(id) && f.billLineIds.length > 0);
   const unmatchedEob = eobLines.filter((l) => !analysis.matches.some((m) => m.eobLineId === l.id));
   const active = analysis.flags.find((f) => f.id === activeFlag);
+  // Explains how listed charges become the balance due (insurance payments and contractual adjustments).
+  const chargesListed = round2(analysis.bill.lines.reduce((s, l) => s + l.billedAmount, 0));
+  const reconcile = analysis.bill.lines.length ? round2(chargesListed - analysis.summary.billBalance) : 0;
 
   const rowClass = (flags: Flag[], highlighted: boolean) => {
     const worst = flags.some((f) => f.confidence === "high") ? "high" : flags.some((f) => f.confidence === "medium") ? "medium" : flags.length ? "low" : null;
@@ -76,6 +79,21 @@ export function SideBySide({ analysis, activeFlag }: { analysis: Analysis; activ
           </li>
         ))}
       </ul>
+      {reconcile !== 0 && (
+        <div className="grid grid-cols-2 border-t border-stone-200 text-sm text-stone-600">
+          <div className="space-y-1 px-4 py-3">
+            <div className="flex justify-between gap-2">
+              <span>{t.chargesListed}</span>
+              <span className="tabular-nums">{formatUsd(chargesListed)}</span>
+            </div>
+            <div className="flex justify-between gap-2">
+              <span>{reconcile > 0 ? t.paidAdjustments : t.otherBalance}</span>
+              <span className="tabular-nums">{reconcile > 0 ? "−" : "+"}{formatUsd(Math.abs(reconcile))}</span>
+            </div>
+          </div>
+          <div className="border-l border-stone-200" />
+        </div>
+      )}
       <div className="grid grid-cols-2 border-t border-stone-200 bg-stone-50 text-sm">
         <div className="flex justify-between px-4 py-3">
           <span>{t.billAsks}</span>

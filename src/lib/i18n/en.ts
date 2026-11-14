@@ -158,6 +158,18 @@ export const en = {
     needEob: "Add your EOB (Explanation of Benefits) from your insurer.",
   },
   results: {
+    breakdown: (parts: string[], total: string) => `${parts.join(" + ")} = ${total} you can dispute`,
+    breakdownClaim: (total: string, reason: string) => `${total} you can dispute: ${reason}`,
+    reasons: {
+      DUPLICATE_CHARGE: "charged twice",
+      BILL_EXCEEDS_EOB: "your bill is above what your EOB says you owe",
+      LINE_NOT_ON_EOB: "not on your EOB",
+      NO_INSURANCE_APPLIED: "insurance not applied to the bill",
+      BALANCE_BILLING_IN_NETWORK: "the in-network discount billed to you",
+      POSSIBLE_SURPRISE_BILL: "above in-network cost-sharing",
+      NOT_ITEMIZED: "bill not itemized",
+      POSSIBLE_UNBUNDLING: "possibly bundled",
+    },
     notFoundTitle: "We couldn’t find that check",
     notFoundBody: "Results are stored only in the browser where you ran the check. If you saved a private case link, open it here.",
     overcharged: "You may be overcharged",
@@ -178,10 +190,15 @@ export const en = {
     paidSingle: "Payment confirmed — this bill is unlocked. 🎉",
   },
   flag: {
+    included: "Already included above",
+    notAdded: "Not added to the total",
     conf: { high: "High confidence", medium: "Medium confidence", low: "Worth asking" },
     source: (s: string) => `Source: ${s}`,
   },
   sbs: {
+    chargesListed: "Charges listed on the bill",
+    paidAdjustments: "Insurance paid & adjustments",
+    otherBalance: "Other charges or previous balance",
     short: {
       DUPLICATE_CHARGE: "Duplicate",
       BILL_EXCEEDS_EOB: "Over EOB",

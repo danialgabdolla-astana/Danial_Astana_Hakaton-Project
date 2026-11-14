@@ -11,6 +11,7 @@ import { Paywall } from "./Paywall";
 import { DisputePackView } from "./DisputePackView";
 import { CaseLink } from "./CaseLink";
 import { apiErrorText } from "@/lib/i18n";
+import { breakdownOf } from "@/lib/breakdown";
 import { useMessages } from "@/lib/i18n/client";
 
 export function ResultsView() {
@@ -60,6 +61,16 @@ export function ResultsView() {
   }
 
   const { summary, flags } = analysis;
+  const bd = breakdownOf(flags);
+  const breakdownText =
+    bd.mode === "lines"
+      ? m.results.breakdown(
+          bd.counted.map((f) => `${formatUsd(f.amountAtStake)} ${m.results.reasons[f.ruleId]}`),
+          formatUsd(bd.total),
+        )
+      : bd.mode === "claim"
+        ? m.results.breakdownClaim(formatUsd(bd.total), m.results.reasons[bd.counted[0].ruleId])
+        : null;
   const counted = flags.filter((f) => f.confidence !== "low" && f.amountAtStake > 0);
 
   return (
@@ -94,8 +105,15 @@ export function ResultsView() {
             {m.results.found}
           </h2>
           {flags.length === 0 && <p className="rounded-2xl border border-stone-200 bg-white p-4 text-sm">{m.results.noIssues}</p>}
+          {breakdownText && <p className="rounded-xl bg-teal-50 px-4 py-3 text-sm font-medium text-teal-900">{breakdownText}</p>}
           {flags.map((f) => (
-            <FlagCard key={f.id} flag={f} active={active === f.id} onSelect={() => setActive(active === f.id ? null : f.id)} />
+            <FlagCard
+              key={f.id}
+              flag={f}
+              status={bd.status[f.id]}
+              active={active === f.id}
+              onSelect={() => setActive(active === f.id ? null : f.id)}
+            />
           ))}
           <p className="text-xs text-stone-500">{m.results.howWorks}</p>
         </section>
