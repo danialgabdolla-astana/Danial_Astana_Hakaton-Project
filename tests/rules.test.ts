@@ -250,3 +250,14 @@ describe("disputableTotal", () => {
     expect(disputableTotal(flags)).toBe(150);
   });
 });
+
+describe("adjustment rows", () => {
+  it("never matches or flags negative lines that repeat a code", () => {
+    const b = clone(sampleBill);
+    b.lines.push({ id: "B6", serviceDate: "2026-09-14", code: "70450", codeType: "CPT", description: "Contractual adjustment", quantity: null, billedAmount: -1620 });
+    const { flags, summary } = runRules(b, [sampleEob]);
+    expect(byRule(flags, "DUPLICATE_CHARGE")).toHaveLength(1);
+    expect(flags.some((f) => f.billLineIds.includes("B6"))).toBe(false);
+    expect(summary.disputableTotal).toBe(645);
+  });
+});

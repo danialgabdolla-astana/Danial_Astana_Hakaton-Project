@@ -29,18 +29,20 @@ function lineKey(l: BillLine): string {
 
 export function buildInput(bill: BillDoc, eobs: EobDoc[], context: PlanContext = {}): RuleInput {
   const eobLines: EobLine[] = eobs.flatMap((e) => e.lines);
-  const matches = matchLines(bill.lines, eobLines);
+  // Credits, payments and adjustments (zero or negative amounts) are not services: never match or flag them.
+  const charges = bill.lines.filter((l) => l.billedAmount > 0);
+  const matches = matchLines(charges, eobLines);
   const byId = new Map(eobLines.map((l) => [l.id, l]));
   const matched = new Map<string, EobLine>();
   for (const m of matches) if (m.eobLineId) matched.set(m.billLineId, byId.get(m.eobLineId)!);
 
   const duplicateOf = new Map<string, BillLine>();
-  bill.lines.forEach((line, i) => {
+  charges.forEach((line, i) => {
     if (matched.has(line.id)) return;
     const key = lineKey(line);
-    const earlier = bill.lines.slice(0, i).find((o) => lineKey(o) === key);
+    const earlier = charges.slice(0, i).find((o) => lineKey(o) === key);
     // Prefer pointing at the copy the insurer actually processed.
-    const processed = bill.lines.find((o) => o.id !== line.id && lineKey(o) === key && matched.has(o.id));
+    const processed = charges.find((o) => o.id !== line.id && lineKey(o) === key && matched.has(o.id));
     const original = processed ?? earlier;
     if (original) duplicateOf.set(line.id, original);
   });
