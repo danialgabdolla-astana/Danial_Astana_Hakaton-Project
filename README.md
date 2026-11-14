@@ -105,7 +105,7 @@ Expected and tested: `DUPLICATE_CHARGE` $480 (high) + `LINE_NOT_ON_EOB` $165 (me
 | `src/lib/i18n/*` | `en.ts` (the shape), `es.ts`, `fr.ts`; flag/deadline/error translation helpers; client locale hook |
 | `src/app/api/*` | `analyze`, `checkout`, `verify`, `letter` |
 | `src/components/*` | Uploader, SideBySide, FlagCard, Paywall, DisputePackView, TrackerBoard, CaseLink |
-| `tests/*` | Vitest (58 tests): every rule, both sample cases, matcher, tokens, redaction, case links, placeholders, translations (English templates match the server text exactly; every language has every message) |
+| `tests/*` | Vitest (67 tests): every rule, both sample cases, matcher, tokens, redaction, case links, placeholders, translations (English templates match the server text exactly; every language has every message) |
 
 ## Payments
 
