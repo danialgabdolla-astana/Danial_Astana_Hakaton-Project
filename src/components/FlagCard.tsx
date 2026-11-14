@@ -35,6 +35,11 @@ function withLinks(text: string) {
   return rest ? text : parts;
 }
 
+/** Splits on sentence ends ("." "?" followed by a space), keeping the punctuation. */
+function sentences(text: string): string[] {
+  return text.split(/(?<=[.?])\s+/);
+}
+
 export function FlagCard({
   flag,
   status,
@@ -61,7 +66,18 @@ export function FlagCard({
           <span className={`text-lg font-semibold tabular-nums ${status && status !== "counted" ? "text-stone-400" : "text-teal-800"}`}>{formatUsd(flag.amountAtStake)}</span>
         )}
       </button>
-      <p className="mt-1 text-sm text-stone-700">{withLinks(t.explanation)}</p>
+      <p className="mt-1 text-sm text-stone-700">
+        {sentences(t.explanation).map((s, i, all) => {
+          // The first sentence that tells the user what to do is bold.
+          const isAction = m.flag.actionStart.test(s) && all.findIndex((x) => m.flag.actionStart.test(x)) === i;
+          return (
+            <Fragment key={i}>
+              {i > 0 && " "}
+              {isAction ? <strong className="font-semibold text-stone-900">{withLinks(s)}</strong> : withLinks(s)}
+            </Fragment>
+          );
+        })}
+      </p>
       <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
         <span className={`rounded-full px-2 py-0.5 font-medium ${CONF_CLASS[flag.confidence]}`}>{m.flag.conf[flag.confidence]}</span>
         {(status === "included" || status === "notAdded") && (

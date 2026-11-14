@@ -29,6 +29,8 @@ export const en = {
     project: "Business Cup 2.0 project. Sample documents are fictional.",
   },
   landing: {
+    previewLabel: "Sample result",
+    previewSub: "Bill $1,840 · EOB says you owe $1,195",
     ctaFree: "Check my bill — free",
     ctaFamily: "Start with a free check",
     vsChatShort: "Chatbot",
@@ -128,6 +130,10 @@ export const en = {
     lede: "Add both documents. We read every line, match the bill to what your insurer processed, and show you exactly what to question — free. No sign-up.",
   },
   uploader: {
+    itemizedLink: "Only have a summary? How to ask for an itemized bill",
+    itemizedIntro: "Send this to the billing office (email, portal message or letter):",
+    itemizedCopy: "Copy request",
+    itemizedCopied: "Copied ✓",
     sampleLive: "Or run the ER sample live through the AI pipeline (~20 s).",
     steps: ["Reading your bill…", "Reading your EOB…", "Matching bill lines to your EOB…", "Checking 8 billing rules…", "Adding up what you can dispute…"],
     wait: "This usually takes 20–60 seconds. Your files are processed in memory and never stored.",
@@ -198,6 +204,7 @@ export const en = {
     paidSingle: "Payment confirmed — this bill is unlocked. 🎉",
   },
   flag: {
+    actionStart: /^(Ask|Call|Request)\b/,
     included: "Already included above",
     notAdded: "Not added to the total",
     conf: { high: "High confidence", medium: "Medium confidence", low: "Worth asking" },

@@ -31,6 +31,8 @@ export const fr: Messages = {
     project: "Projet Business Cup 2.0. Les documents d’exemple sont fictifs.",
   },
   landing: {
+    previewLabel: "Exemple de résultat",
+    previewSub: "Facture $1,840 · L’EOB indique que vous devez $1,195",
     ctaFree: "Vérifier ma facture gratuitement",
     ctaFamily: "Commencer par une vérification gratuite",
     vsChatShort: "Chatbot",
@@ -130,6 +132,10 @@ export const fr: Messages = {
     lede: "Ajoutez les deux documents. Nous lisons chaque ligne, comparons la facture à ce que votre assureur a traité et vous montrons exactement quoi contester, gratuitement. Sans inscription.",
   },
   uploader: {
+    itemizedLink: "Vous n’avez qu’un résumé ? Comment demander une facture détaillée",
+    itemizedIntro: "Envoyez ceci au service de facturation (e-mail, message sur le portail ou courrier). C’est en anglais, car cela s’adresse à un service américain :",
+    itemizedCopy: "Copier la demande",
+    itemizedCopied: "Copié ✓",
     sampleLive: "Ou lancez l’exemple des urgences en direct avec l’IA (~20 s).",
     steps: ["Lecture de votre facture…", "Lecture de votre EOB…", "Association des lignes avec votre EOB…", "Application des 8 règles de facturation…", "Calcul du montant contestable…"],
     wait: "Cela prend généralement 20 à 60 secondes. Vos fichiers sont traités en mémoire et jamais conservés.",
@@ -200,6 +206,7 @@ export const fr: Messages = {
     paidSingle: "Paiement confirmé : cette facture est débloquée. 🎉",
   },
   flag: {
+    actionStart: /^(Demandez|Appelez)\b/,
     included: "Déjà compris ci-dessus",
     notAdded: "Non ajouté au total",
     conf: { high: "Confiance élevée", medium: "Confiance moyenne", low: "À demander" },

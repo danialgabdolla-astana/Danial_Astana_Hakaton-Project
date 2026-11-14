@@ -10,6 +10,7 @@ import { SideBySide } from "./SideBySide";
 import { Paywall } from "./Paywall";
 import { DisputePackView } from "./DisputePackView";
 import { CaseLink } from "./CaseLink";
+import { CountUp } from "./CountUp";
 import { apiErrorText } from "@/lib/i18n";
 import { breakdownOf } from "@/lib/breakdown";
 import { RULES_URL } from "@/lib/links";
@@ -87,7 +88,10 @@ export function ResultsView() {
           <>
             <p className="text-sm uppercase tracking-wider text-teal-300">{analysis.bill.providerName}</p>
             <h1 className="mt-2 text-3xl font-semibold leading-tight sm:text-4xl">
-              {m.results.overcharged} <span className="text-teal-300">{formatUsd(summary.disputableTotal)}</span>
+              {m.results.overcharged}{" "}
+              <span className="text-teal-300">
+                <CountUp value={summary.disputableTotal} />
+              </span>
             </h1>
           </>
         ) : (
@@ -96,7 +100,7 @@ export function ResultsView() {
           </h1>
         )}
         <p className="mt-3 max-w-2xl text-stone-300">
-          {m.results.summary({ bill: summary.billBalance, eob: summary.eobPatientResponsibility, issues: summary.issueCount, counted: counted.length })}
+          {m.results.summary({ bill: summary.billBalance, eob: summary.eobPatientResponsibility, issues: summary.issueCount, counted: bd.counted.length })}
         </p>
       </section>
 
@@ -134,7 +138,7 @@ export function ResultsView() {
       </div>
 
       {summary.disputableTotal > 0 && (
-        <p className="no-print rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">⏸ {m.results.holdTip}</p>
+        <p className="no-print rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">{m.results.holdTip}</p>
       )}
 
       {verifying ? (

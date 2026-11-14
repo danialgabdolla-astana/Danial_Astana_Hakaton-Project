@@ -31,6 +31,8 @@ export const es: Messages = {
     project: "Proyecto de Business Cup 2.0. Los documentos de ejemplo son ficticios.",
   },
   landing: {
+    previewLabel: "Resultado de ejemplo",
+    previewSub: "Factura $1,840 · El EOB dice que debes $1,195",
     ctaFree: "Revisar mi factura gratis",
     ctaFamily: "Empezar con una revisión gratis",
     vsChatShort: "Chatbot",
@@ -130,6 +132,10 @@ export const es: Messages = {
     lede: "Agrega los dos documentos. Leemos cada línea, comparamos la factura con lo que procesó tu aseguradora y te mostramos exactamente qué cuestionar, gratis. Sin registro.",
   },
   uploader: {
+    itemizedLink: "¿Solo tienes un resumen? Cómo pedir una factura detallada",
+    itemizedIntro: "Envía esto a la oficina de facturación (correo, mensaje en el portal o carta). Está en inglés porque va a una oficina de EE. UU.:",
+    itemizedCopy: "Copiar solicitud",
+    itemizedCopied: "Copiado ✓",
     sampleLive: "O ejecuta el ejemplo de urgencias en vivo con la IA (~20 s).",
     steps: ["Leyendo tu factura…", "Leyendo tu EOB…", "Emparejando las líneas con tu EOB…", "Aplicando 8 reglas de facturación…", "Sumando lo que puedes disputar…"],
     wait: "Suele tardar entre 20 y 60 segundos. Tus archivos se procesan en memoria y nunca se guardan.",
@@ -200,6 +206,7 @@ export const es: Messages = {
     paidSingle: "Pago confirmado: esta factura está desbloqueada. 🎉",
   },
   flag: {
+    actionStart: /^(Pide|Pregunta|Llama|Solicita)\b/,
     included: "Ya incluido arriba",
     notAdded: "No se suma al total",
     conf: { high: "Confianza alta", medium: "Confianza media", low: "Vale la pena preguntar" },

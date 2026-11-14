@@ -8,7 +8,8 @@ export function Landing() {
   const L = m.landing;
   return (
     <main>
-      <section className="mx-auto max-w-6xl px-4 pb-16 pt-12 sm:px-6 sm:pt-20">
+      <section className="mx-auto grid max-w-6xl items-center gap-10 px-4 pb-16 pt-12 sm:px-6 sm:pt-20 lg:grid-cols-[1fr_440px]">
+        <div>
         <p className="mb-4 inline-block rounded-full bg-teal-50 px-3 py-1 text-sm font-medium text-teal-800">{L.badge}</p>
         <h1 className="max-w-3xl text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">{L.h1}</h1>
         <p className="mt-5 max-w-2xl text-lg text-stone-600">{L.lede}</p>
@@ -16,8 +17,8 @@ export function Landing() {
           <Link href="/check" className="rounded-xl bg-teal-700 px-6 py-3.5 text-center text-lg font-semibold text-white shadow-sm hover:bg-teal-800">
             {L.ctaCheck}
           </Link>
-          <Link href="/check?sample=1" className="rounded-xl border border-stone-300 bg-white px-6 py-3.5 text-center text-lg font-medium hover:bg-stone-100">
-            {L.ctaSample}
+          <Link href="/check?sample=1" className="rounded-xl bg-stone-900 px-6 py-3.5 text-center text-lg font-semibold text-white shadow-sm hover:bg-stone-800">
+            ▶ {L.ctaSample}
           </Link>
         </div>
         <p className="mt-3 text-sm text-stone-600">
@@ -28,6 +29,8 @@ export function Landing() {
           {L.anesthesiaNote}
         </p>
         <p className="mt-4 text-sm text-stone-500">{L.trust}</p>
+        </div>
+        <HeroPreview />
       </section>
 
       <section className="border-y border-stone-200 bg-white">
@@ -196,5 +199,39 @@ function Price({ name, price, note, items, highlight, cta }: { name: string; pri
         {cta}
       </Link>
     </div>
+  );
+}
+
+/** A static picture of what the results look like, built from the ER sample case (not a live result). */
+function HeroPreview() {
+  const m = useMessages();
+  const rows: { desc: string; amount: string; tag?: string; cls: string }[] = [
+    { desc: "Emergency dept visit, level 4", amount: "$1,450.00", cls: "" },
+    { desc: "CT head/brain w/o contrast", amount: "$2,100.00", tag: m.sbs.short.DUPLICATE_CHARGE, cls: "bg-red-50" },
+    { desc: "Supplies and materials", amount: "$165.00", tag: m.sbs.short.LINE_NOT_ON_EOB, cls: "bg-amber-50" },
+  ];
+  return (
+    <Link href="/check?sample=1" aria-label={m.landing.ctaSample} className="hidden overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm transition hover:shadow-md lg:block">
+      <div className="bg-stone-900 p-5 text-white">
+        <p className="text-xs uppercase tracking-wider text-teal-300">
+          {m.landing.previewLabel} · Riverside General Hospital
+        </p>
+        <p className="mt-1 text-2xl font-semibold">
+          {m.results.overcharged} <span className="text-teal-300">$645</span>
+        </p>
+        <p className="mt-1 text-sm text-stone-300">{m.landing.previewSub}</p>
+      </div>
+      <ul className="text-sm">
+        {rows.map((r) => (
+          <li key={r.desc} className={`flex items-center justify-between gap-3 border-t border-stone-100 px-5 py-3 ${r.cls}`}>
+            <span>
+              {r.desc}
+              {r.tag && <span className="ml-2 rounded-full bg-white px-2 py-0.5 text-xs font-medium ring-1 ring-stone-300">{r.tag}</span>}
+            </span>
+            <span className="tabular-nums">{r.amount}</span>
+          </li>
+        ))}
+      </ul>
+    </Link>
   );
 }

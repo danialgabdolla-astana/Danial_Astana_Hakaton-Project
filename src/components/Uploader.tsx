@@ -166,6 +166,7 @@ export function Uploader() {
         <DocInput
           title={U.billTitle}
           hint={U.billHint}
+          extra={<ItemizedRequest />}
           state={bill}
           onChange={(s) => {
             setBill(s);
@@ -225,7 +226,7 @@ export function Uploader() {
         <button type="submit" className="rounded-xl bg-teal-700 px-6 py-3 text-base font-semibold text-white shadow-sm hover:bg-teal-800">
           {U.submit}
         </button>
-        <button type="button" onClick={() => trySample("er")} className="rounded-xl border border-stone-300 bg-white px-6 py-3 text-base font-medium hover:bg-stone-100">
+        <button type="button" onClick={() => trySample("er")} className="rounded-xl bg-stone-900 px-6 py-3 text-base font-semibold text-white shadow-sm hover:bg-stone-800">
           {U.sampleEr}
         </button>
         <button type="button" onClick={() => trySample("anesthesia")} className="rounded-xl border border-stone-300 bg-white px-6 py-3 text-base font-medium hover:bg-stone-100">
@@ -261,7 +262,53 @@ export function Uploader() {
   );
 }
 
-function DocInput({ title, hint, state, onChange, id }: { title: string; hint: string; state: DocState; onChange: (s: DocState) => void; id: string }) {
+const ITEMIZED_REQUEST =
+  "Hi, I'd like an itemized bill for my visit on [date], including CPT/HCPCS codes, units and charges for each line. " +
+  "Please hold the account from collections until I receive it. Thank you.";
+
+/** For people who only have a summary statement: a ready-to-send request for the itemized bill. */
+function ItemizedRequest() {
+  const U = useMessages().uploader;
+  const [copied, setCopied] = useState(false);
+  return (
+    <details className="mt-2 text-sm">
+      <summary className="cursor-pointer font-medium text-teal-800 underline-offset-2 hover:underline">{U.itemizedLink}</summary>
+      <div className="mt-2 rounded-xl bg-stone-50 p-3">
+        <p className="text-stone-600">{U.itemizedIntro}</p>
+        <p lang="en" className="mt-2 rounded-lg border border-stone-200 bg-white p-3 text-stone-800">
+          {ITEMIZED_REQUEST}
+        </p>
+        <button
+          type="button"
+          onClick={() => {
+            navigator.clipboard?.writeText(ITEMIZED_REQUEST);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 1500);
+          }}
+          className="mt-2 rounded-lg border border-stone-300 bg-white px-3 py-1.5 hover:bg-stone-100"
+        >
+          {copied ? U.itemizedCopied : U.itemizedCopy}
+        </button>
+      </div>
+    </details>
+  );
+}
+
+function DocInput({
+  title,
+  hint,
+  state,
+  onChange,
+  id,
+  extra,
+}: {
+  title: string;
+  hint: string;
+  state: DocState;
+  onChange: (s: DocState) => void;
+  id: string;
+  extra?: React.ReactNode;
+}) {
   const [drag, setDrag] = useState(false);
   const U = useMessages().uploader;
   const add = (list: FileList | null) => {
@@ -275,6 +322,7 @@ function DocInput({ title, hint, state, onChange, id }: { title: string; hint: s
         <div>
           <h2 className="font-semibold">{title}</h2>
           <p className="mt-1 text-sm text-stone-600">{hint}</p>
+          {extra}
         </div>
       </div>
       <div className="mt-3 flex gap-1 rounded-lg bg-stone-100 p-1 text-sm" role="tablist">
