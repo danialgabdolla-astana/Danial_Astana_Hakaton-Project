@@ -37,6 +37,15 @@ const FAQ = [
   },
 ];
 
+const VS_CHAT: [string, string, string][] = [
+  ["Reads your bill and your EOB together", "One document at a time, usually", "Matches every bill line to an EOB line"],
+  ["Where the numbers come from", "The model's best guess, can change between tries", "8 fixed, unit-tested billing rules: same bill, same answer"],
+  ["Shows its work", "Rarely", "Each issue cites the exact lines and the rule"],
+  ["Knows your rights", "Only if you ask the right question", "No Surprises Act, itemized bills, appeal windows built in"],
+  ["After the answer", "You're on your own", "Letter, phone script, deadlines, tracker and calendar reminders"],
+  ["Your documents", "Stored in your chat history", "Names masked, files never stored"],
+];
+
 const COMPARE = [
   ["Free AI chatbots", "Reads one document, can invent codes, no follow-up", "Free"],
   ["Apps that link your insurance", "Need your insurance login", "Free–$60/mo"],
@@ -64,6 +73,13 @@ export default function Home() {
             Try a sample bill
           </Link>
         </div>
+        <p className="mt-3 text-sm text-stone-600">
+          Or try a{" "}
+          <Link href="/check?sample=2" className="font-medium text-teal-800 underline underline-offset-2">
+            surprise anesthesia bill
+          </Link>{" "}
+          (No Surprises Act case).
+        </p>
         <p className="mt-4 text-sm text-stone-500">Free check · No sign-up · No insurance or bank login · Files never stored</p>
       </section>
 
@@ -104,6 +120,33 @@ export default function Home() {
             AI only transcribes your documents into data. Every issue and every dollar amount comes from fixed, tested billing rules — so the same bill
             always gets the same answer, and each finding shows exactly where it came from.
           </p>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6" aria-labelledby="vs-chat">
+        <h2 id="vs-chat" className="text-2xl font-semibold">Why not just ask ChatGPT?</h2>
+        <p className="mt-2 max-w-2xl text-stone-600">
+          A chatbot can explain what a CPT code means. Getting money back takes a matched audit, a paper trail and follow-up.
+        </p>
+        <div className="mt-6 overflow-x-auto rounded-2xl border border-stone-200 bg-white">
+          <table className="w-full min-w-[640px] text-left text-sm">
+            <thead>
+              <tr className="bg-stone-50 text-stone-500">
+                <th className="px-4 py-3 font-medium" scope="col"></th>
+                <th className="px-4 py-3 font-medium" scope="col">General AI chatbot</th>
+                <th className="px-4 py-3 font-medium text-teal-900" scope="col">BillCheck</th>
+              </tr>
+            </thead>
+            <tbody>
+              {VS_CHAT.map(([what, chat, us]) => (
+                <tr key={what} className="border-t border-stone-200">
+                  <th scope="row" className="px-4 py-3 font-medium">{what}</th>
+                  <td className="px-4 py-3 text-stone-600">{chat}</td>
+                  <td className="px-4 py-3 text-teal-900">✓ {us}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </section>
 
