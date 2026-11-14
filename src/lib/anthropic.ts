@@ -68,7 +68,8 @@ async function extractWithTool<T>(
       if (status === 401) throw new UserError("The AI service rejected the server's API key.", 503);
       if (status === 429 || status === 529) throw new UserError("The AI service is busy right now. Please try again in a minute.", 503);
       if (status === 400 && /credit/i.test(String((err as Error).message))) throw new UserError("The AI service is out of credits on this server.", 503);
-      throw new UserError("Reading the document took too long or failed. Please try again.", 502);
+      if (status === 404) throw new UserError(`The AI model "${MODEL()}" isn't available for this API key (set ANTHROPIC_MODEL).`, 503);
+      throw new UserError(`Reading the document took too long or failed (${status ?? (err as Error).name}). Please try again.`, 502);
     }
     const call = res.content.find((c) => c.type === "tool_use");
     const input = (call?.type === "tool_use" ? call.input : {}) as Record<string, unknown>;
