@@ -6,6 +6,7 @@ import { store } from "@/lib/client-store";
 import { buildIcs, downloadText } from "@/lib/ics";
 import { CaseLink } from "./CaseLink";
 import { formatUsd } from "@/lib/money";
+import { notifyUpdate } from "@/lib/notify";
 import { STATUSES, ensureDispute, getDisputes, isDisputeList, saveDisputes, today, type Dispute, type Status } from "@/lib/tracker";
 import { SAMPLE_TOKEN } from "@/lib/client-store";
 import { Analysis } from "@/lib/schemas";
@@ -14,6 +15,7 @@ import { formatDate } from "@/lib/dates";
 
 export function TrackerBoard() {
   const t = useMessages().tracker;
+  const locale = useLocale();
   const [list, setList] = useState<Dispute[]>(() => getDisputes());
   // Messages are kept as data so they follow a language switch.
   const [msg, setMsg] = useState<{ imported: number } | { bad: true } | null>(null);
@@ -23,6 +25,8 @@ export function TrackerBoard() {
     const next = list.map((d) => (d.id === id ? { ...d, ...patch } : d));
     setList(next);
     saveDisputes(next);
+    const before = list.find((d) => d.id === id);
+    if (patch.status && before && patch.status !== before.status) notifyUpdate(id, patch.status === "Letter sent" ? "letterSent" : "status", locale);
   }
 
   function remove(id: string) {

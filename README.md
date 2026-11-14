@@ -105,7 +105,7 @@ Expected and tested: `DUPLICATE_CHARGE` $480 (high) + `LINE_NOT_ON_EOB` $165 (me
 | `src/lib/i18n/*` | `en.ts` (the shape), `es.ts`, `fr.ts`; flag/deadline/error translation helpers; client locale hook |
 | `src/app/api/*` | `analyze`, `checkout`, `verify`, `letter` |
 | `src/components/*` | Uploader, SideBySide, FlagCard, Paywall, DisputePackView, TrackerBoard, CaseLink |
-| `tests/*` | Vitest (67 tests): every rule, both sample cases, matcher, tokens, redaction, case links, placeholders, translations (English templates match the server text exactly; every language has every message) |
+| `tests/*` | Vitest (72 tests): every rule, both sample cases, matcher, tokens, redaction, case links, placeholders, translations (English templates match the server text exactly; every language has every message) |
 
 ## Payments
 
@@ -132,6 +132,13 @@ npm run samples                # regenerate the sample PDFs
 | `STRIPE_SECRET_KEY` | yes for paywall | `sk_test_...` |
 | `UNLOCK_SECRET` | yes for paywall | Any random string, 32+ characters |
 | `NEXT_PUBLIC_APP_URL` | no | Public URL for Stripe redirects; defaults to the request origin |
+| `SMTP_USER` / `SMTP_PASS` | no, for case emails | SMTP login. For Gmail: the address and a 16-character [app password](https://myaccount.google.com/apppasswords) |
+| `SMTP_HOST` / `SMTP_PORT` | no | Default `smtp.gmail.com` / `465` |
+| `EMAIL_FROM` | no | Sender shown to users, e.g. `BillCheck <you@gmail.com>` |
+
+### Case emails
+
+"Email it to myself" sends the case summary and the private case link right away. If the user leaves "Also email me when…" on, BillCheck emails again when they mark the letter sent (with the follow-up date and a calendar file) and when they change the status in the tracker. There is no database or scheduler: the browser asks `/api/email`, which sends one fixed-template email (en/es/fr) and stores nothing. The address stays in the user's browser. The route accepts only this site's `/open#…` case links and is rate-limited per IP and per recipient. Without `SMTP_USER`/`SMTP_PASS` the button falls back to the user's own mail app (`mailto:`).
 
 ### Deploy to Vercel
 

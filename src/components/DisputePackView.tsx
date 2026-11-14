@@ -8,9 +8,10 @@ import { downloadText } from "@/lib/ics";
 import type { Analysis } from "@/lib/schemas";
 import { StoredPack, type DisputePack } from "@/lib/schemas";
 import { addDays, ensureDispute, getDisputes, saveDisputes, today } from "@/lib/tracker";
+import { notifyUpdate } from "@/lib/notify";
 import { MULTILINE, fillPlaceholders, findPlaceholders, letterDate } from "@/lib/placeholders";
 import { apiErrorText, deadlineText } from "@/lib/i18n";
-import { useMessages } from "@/lib/i18n/client";
+import { useLocale, useMessages } from "@/lib/i18n/client";
 
 type Tab = "letter" | "insurer" | "script" | "deadlines";
 
@@ -50,6 +51,7 @@ function scriptText(p: DisputePack): string {
 export function DisputePackView({ analysis, token }: { analysis: Analysis; token: string }) {
   const router = useRouter();
   const m = useMessages();
+  const locale = useLocale();
   const T = m.pack;
   const [rawPack, setPack] = useState<DisputePack | null>(() => store.getPack<DisputePack>(analysis.analysisId));
   const [details, setDetails] = useState<Record<string, string>>(() => store.getDetails());
@@ -111,6 +113,7 @@ export function DisputePackView({ analysis, token }: { analysis: Analysis; token
       d.id === analysis.analysisId ? { ...d, status: "Letter sent" as const, letterSentAt: today(), followUpDate: addDays(today(), 30) } : d,
     );
     saveDisputes(list);
+    notifyUpdate(analysis.analysisId, "letterSent", locale);
     router.push("/tracker");
   }
 
