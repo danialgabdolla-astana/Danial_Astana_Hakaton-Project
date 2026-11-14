@@ -25,6 +25,6 @@ describe("letter placeholders", () => {
   });
 
   it("formats a US letter date", () => {
-    expect(letterDate(new Date(2026, 10, 15))).toBe("November 15, 2026");
+    expect(letterDate(new Date(2026, 10, 15))).toBe("Nov 15, 2026");
   });
 });

@@ -1,3 +1,4 @@
+import { formatDate } from "../dates";
 import { formatUsd } from "../money";
 import type { Messages, Vars } from "./en";
 
@@ -105,7 +106,7 @@ export const es: Messages = {
       },
       {
         q: "¿Qué pasa con mis documentos?",
-        a: "Los archivos se procesan en memoria para leer las líneas y nunca se guardan en nuestros servidores. Ocultamos nombres, números de afiliado y números de cuenta. Tus resultados y tu seguimiento se guardan solo en tu navegador. No decimos cumplir con HIPAA; simplemente no guardamos tus archivos.",
+        a: "Los archivos se procesan en memoria para leer las líneas y nunca se guardan en nuestros servidores. Ocultamos nombres, números de afiliado y números de cuenta. Tus resultados y tu seguimiento se guardan solo en tu navegador. Nunca guardamos tus archivos, así que no hay nada que se pueda filtrar.",
       },
       { q: "¿Tengo que conectar mi seguro o mi cuenta bancaria?", a: "No. Solo necesitamos dos documentos: sin contraseñas ni cuentas conectadas." },
       {
@@ -164,6 +165,7 @@ export const es: Messages = {
     needEob: "Agrega tu EOB (Explicación de Beneficios) de tu aseguradora.",
   },
   results: {
+    holdTip: "Primer paso: pide a la oficina de facturación que ponga tu cuenta en espera mientras dure la disputa, para que no pase a cobranza.",
     breakdown: (parts: string[], total: string) => `${parts.join(" + ")} = ${total} que puedes disputar`,
     breakdownClaim: (total: string, reason: string) => `${total} que puedes disputar: ${reason}`,
     reasons: {
@@ -296,7 +298,7 @@ export const es: Messages = {
     },
     sendLetter: { title: "Envía la carta de disputa por correo o en línea", detail: "Guarda una copia y anota la fecha de envío." },
     followUp: { title: "Haz seguimiento si no te han respondido", detail: "Vuelve a llamar y menciona tu primera llamada y tu carta." },
-    dueDate: { title: (date: string) => `Fecha de vencimiento en el estado de cuenta: ${date}`, detail: "Pide que extiendan la fecha mientras revisan la factura." },
+    dueDate: { title: (date: string) => `Fecha de vencimiento en el estado de cuenta: ${formatDate(date, "es")}`, detail: "Pide que extiendan la fecha mientras revisan la factura." },
     appeal: {
       title: "Plazo para apelar ante la aseguradora",
       detail: "En la mayoría de los planes de empleador puedes presentar una apelación interna dentro de los 180 días posteriores al EOB o al aviso de rechazo.",
@@ -311,8 +313,8 @@ export const es: Messages = {
     saved: "Has ahorrado",
     open: "Disputas abiertas",
     inDispute: "En disputa",
-    export: "Exportar (JSON)",
-    import: "Importar",
+    export: "Descargar copia de seguridad",
+    import: "Restaurar copia de seguridad",
     storageNote: "Tu seguimiento vive solo en este navegador. Usa un enlace privado del caso para abrirlo en otro lugar, o exporta todo como respaldo.",
     imported: (n: number) => `Se ${plural(n, "importó", "importaron")} ${n} ${plural(n, "disputa", "disputas")}.`,
     badImport: "Ese archivo no es una exportación de BillCheck.",
@@ -401,7 +403,7 @@ export const es: Messages = {
         };
         return (
           `Este servicio aparece ${p.onEob ? "más veces en la factura que en tu EOB" : "dos veces en la factura"}` +
-          `${p.date ? ` el ${p.date}` : ""}. La aseguradora lo procesó una sola vez, así que la línea extra ` +
+          `${p.date ? ` el ${formatDate(String(p.date), "es")}` : ""}. La aseguradora lo procesó una sola vez, así que la línea extra ` +
           `probablemente no debería estar en tu factura. El monto se basa en ${basis[String(p.basis)] ?? basis.billed}.`
         );
       },

@@ -1,3 +1,4 @@
+import { formatDate } from "../dates";
 import { formatUsd } from "../money";
 
 /** Values a message template can receive (flag params, error vars, counts). */
@@ -103,7 +104,7 @@ export const en = {
       },
       {
         q: "What happens to my documents?",
-        a: "Files are processed in memory to read the lines and are never stored on our servers. We mask names, member IDs and account numbers. Your results and tracker are saved only in your browser. We don’t claim to be HIPAA-compliant; we simply don’t keep your files.",
+        a: "Files are processed in memory to read the lines and are never stored on our servers. We mask names, member IDs and account numbers. Your results and tracker are saved only in your browser. We never store your files, so there’s nothing to leak.",
       },
       { q: "Do I need to connect my insurance or bank account?", a: "No. Two documents are all we need — no logins, no account linking." },
       {
@@ -162,6 +163,7 @@ export const en = {
     needEob: "Add your EOB (Explanation of Benefits) from your insurer.",
   },
   results: {
+    holdTip: "First step: ask the billing office to put your account on hold while the dispute is open, so it doesn’t go to collections.",
     breakdown: (parts: string[], total: string) => `${parts.join(" + ")} = ${total} you can dispute`,
     breakdownClaim: (total: string, reason: string) => `${total} you can dispute: ${reason}`,
     reasons: {
@@ -282,7 +284,7 @@ export const en = {
     },
     sendLetter: { title: "Mail or upload the dispute letter", detail: "Keep a copy and note the date you sent it." },
     followUp: { title: "Follow up if you haven't heard back", detail: "Call again and reference your first call and your letter." },
-    dueDate: { title: (date: string) => `Bill due date on the statement: ${date}`, detail: "Ask for the due date to be extended while the bill is under review." },
+    dueDate: { title: (date: string) => `Bill due date on the statement: ${formatDate(date)}`, detail: "Ask for the due date to be extended while the bill is under review." },
     appeal: {
       title: "Insurer appeal window",
       detail: "For most job-based plans you can file an internal appeal with your insurer within 180 days of the EOB/denial notice.",
@@ -297,8 +299,8 @@ export const en = {
     saved: "You’ve saved",
     open: "Open disputes",
     inDispute: "In dispute",
-    export: "Export (JSON)",
-    import: "Import",
+    export: "Download backup",
+    import: "Restore backup",
     storageNote: "Your tracker lives in this browser only. Use a private case link to open a case elsewhere, or export everything as a backup.",
     imported: (n: number) => `Imported ${n} ${plural(n, "dispute", "disputes")}.`,
     badImport: "That file isn’t a BillCheck export.",
@@ -387,7 +389,7 @@ export const en = {
         };
         return (
           `This service appears ${p.onEob ? "more often on the bill than on your EOB" : "twice on the bill"}` +
-          `${p.date ? ` for ${p.date}` : ""}. The insurer processed it once, so the extra line ` +
+          `${p.date ? ` for ${formatDate(String(p.date))}` : ""}. The insurer processed it once, so the extra line ` +
           `likely shouldn't be on your bill. Amount is based on ${basis[String(p.basis)] ?? basis.billed}.`
         );
       },

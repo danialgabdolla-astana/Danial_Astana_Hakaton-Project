@@ -20,9 +20,9 @@ export function fillPlaceholders(text: string, values: Record<string, string>): 
   });
 }
 
-/** Long US-style date, e.g. "November 15, 2026". */
+/** US-style date for the letter, e.g. "Nov 15, 2026". */
 export function letterDate(d = new Date()): string {
-  return d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  return d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 }
 
 /** Fields that need more than one line. */

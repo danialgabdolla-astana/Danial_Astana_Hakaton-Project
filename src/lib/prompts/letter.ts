@@ -13,6 +13,8 @@ Hard rules:
 - Reference line items by service date, code and description. Quote dollar amounts exactly as given.
 - Always ask the provider to (1) correct or explain each issue, (2) send an updated itemized bill with CPT/HCPCS codes,
   (3) place the account on hold / pause collections while the review is open, and (4) respond in writing.
+- Write every date in US style, like "Sep 14, 2026" (dates in the data already are).
+- The phone script's "asks" must include: "Please put my account on hold while the dispute is open, so it doesn't go to collections."
 - Low-confidence flags are phrased as questions ("Could you confirm whether…").
 - Do not give legal advice and do not threaten legal action.`;
 

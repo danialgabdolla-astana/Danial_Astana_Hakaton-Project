@@ -2,11 +2,13 @@
 
 import { formatUsd, round2 } from "@/lib/money";
 import type { Analysis, EobLine, Flag } from "@/lib/schemas";
-import { useMessages } from "@/lib/i18n/client";
+import { useLocale, useMessages } from "@/lib/i18n/client";
+import { formatDate } from "@/lib/dates";
 
 /** Bill lines on the left, the matching EOB line on the right; flagged rows are highlighted. */
 export function SideBySide({ analysis, activeFlag }: { analysis: Analysis; activeFlag: string | null }) {
   const t = useMessages().sbs;
+  const locale = useLocale();
   const eobLines = analysis.eobs.flatMap((e) => e.lines);
   const eobById = new Map(eobLines.map((l) => [l.id, l]));
   const matchFor = new Map(analysis.matches.map((m) => [m.billLineId, m.eobLineId]));
@@ -52,7 +54,7 @@ export function SideBySide({ analysis, activeFlag }: { analysis: Analysis; activ
                   <span className="tabular-nums">{formatUsd(b.billedAmount)}</span>
                 </div>
                 <div className="text-xs text-stone-500">
-                  {b.serviceDate ?? t.noDate} · {b.code ?? t.noCode}
+                  {b.serviceDate ? formatDate(b.serviceDate, locale) : t.noDate} · {b.code ?? t.noCode}
                 </div>
                 {flags.length > 0 && (
                   <div className="flex flex-wrap gap-1">

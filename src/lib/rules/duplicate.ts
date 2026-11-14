@@ -1,3 +1,4 @@
+import { formatDate } from "../dates";
 import { round2 } from "../money";
 import type { Confidence } from "../schemas";
 import type { Rule } from "./types";
@@ -40,7 +41,7 @@ export const duplicateCharge: Rule = ({ bill, matched, duplicateOf, context }) =
       title: `Charged twice: ${line.description}`,
       explanation:
         `This service appears ${eob ? "more often on the bill than on your EOB" : "twice on the bill"}` +
-        `${line.serviceDate ? ` for ${line.serviceDate}` : ""}. The insurer processed it once, so the extra line ` +
+        `${line.serviceDate ? ` for ${formatDate(line.serviceDate)}` : ""}. The insurer processed it once, so the extra line ` +
         `likely shouldn't be on your bill. Amount is based on ${basis}.`,
       billLineIds: [original.id, line.id],
       eobLineIds: eob ? [eob.id] : [],

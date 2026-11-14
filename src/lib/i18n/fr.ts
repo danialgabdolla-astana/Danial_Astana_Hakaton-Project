@@ -1,3 +1,4 @@
+import { formatDate } from "../dates";
 import { formatUsd } from "../money";
 import type { Messages, Vars } from "./en";
 
@@ -105,7 +106,7 @@ export const fr: Messages = {
       },
       {
         q: "Que deviennent mes documents ?",
-        a: "Les fichiers sont traités en mémoire pour lire les lignes et ne sont jamais conservés sur nos serveurs. Nous masquons les noms, numéros d’adhérent et numéros de compte. Vos résultats et votre suivi sont enregistrés uniquement dans votre navigateur. Nous ne prétendons pas être conformes HIPAA : nous ne gardons simplement pas vos fichiers.",
+        a: "Les fichiers sont traités en mémoire pour lire les lignes et ne sont jamais conservés sur nos serveurs. Nous masquons les noms, numéros d’adhérent et numéros de compte. Vos résultats et votre suivi sont enregistrés uniquement dans votre navigateur. Nous ne conservons jamais vos fichiers : il n’y a donc rien à divulguer.",
       },
       { q: "Dois-je connecter mon assurance ou mon compte bancaire ?", a: "Non. Deux documents suffisent : aucun identifiant, aucun compte à relier." },
       {
@@ -164,6 +165,7 @@ export const fr: Messages = {
     needEob: "Ajoutez l’EOB (relevé de prestations) de votre assureur.",
   },
   results: {
+    holdTip: "Première étape : demandez au service de facturation de suspendre votre compte pendant la contestation, pour qu’il ne soit pas transmis au recouvrement.",
     breakdown: (parts: string[], total: string) => `${parts.join(" + ")} = ${total} contestables`,
     breakdownClaim: (total: string, reason: string) => `${total} contestables : ${reason}`,
     reasons: {
@@ -296,7 +298,7 @@ export const fr: Messages = {
     },
     sendLetter: { title: "Envoyez la lettre de contestation par courrier ou en ligne", detail: "Gardez une copie et notez la date d’envoi." },
     followUp: { title: "Relancez si vous n’avez pas de réponse", detail: "Rappelez en mentionnant votre premier appel et votre lettre." },
-    dueDate: { title: (date: string) => `Date d’échéance sur le relevé : ${date}`, detail: "Demandez un report de l’échéance pendant la révision de la facture." },
+    dueDate: { title: (date: string) => `Date d’échéance sur le relevé : ${formatDate(date, "fr")}`, detail: "Demandez un report de l’échéance pendant la révision de la facture." },
     appeal: {
       title: "Délai d’appel auprès de l’assureur",
       detail: "Pour la plupart des contrats d’employeur, vous pouvez déposer un appel interne dans les 180 jours suivant l’EOB ou l’avis de refus.",
@@ -311,8 +313,8 @@ export const fr: Messages = {
     saved: "Vous avez économisé",
     open: "Contestations ouvertes",
     inDispute: "En contestation",
-    export: "Exporter (JSON)",
-    import: "Importer",
+    export: "Télécharger une sauvegarde",
+    import: "Restaurer une sauvegarde",
     storageNote: "Votre suivi est enregistré uniquement dans ce navigateur. Utilisez un lien privé pour ouvrir un dossier ailleurs, ou exportez tout en sauvegarde.",
     imported: (n: number) => `${n} ${plural(n, "contestation importée", "contestations importées")}.`,
     badImport: "Ce fichier n’est pas un export BillCheck.",
@@ -401,7 +403,7 @@ export const fr: Messages = {
         };
         return (
           `Ce soin apparaît ${p.onEob ? "plus souvent sur la facture que sur votre EOB" : "deux fois sur la facture"}` +
-          `${p.date ? ` le ${p.date}` : ""}. L’assureur ne l’a traité qu’une fois : la ligne en trop ` +
+          `${p.date ? ` le ${formatDate(String(p.date), "fr")}` : ""}. L’assureur ne l’a traité qu’une fois : la ligne en trop ` +
           `ne devrait probablement pas figurer sur votre facture. Le montant est calculé sur ${basis[String(p.basis)] ?? basis.billed}.`
         );
       },

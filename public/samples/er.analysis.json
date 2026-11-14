@@ -170,7 +170,7 @@
   {
    "ruleId": "DUPLICATE_CHARGE",
    "title": "Charged twice: CT head/brain w/o contrast",
-   "explanation": "This service appears more often on the bill than on your EOB for 2026-09-14. The insurer processed it once, so the extra line likely shouldn't be on your bill. Amount is based on the insurer's allowed amount, because your deductible applies.",
+   "explanation": "This service appears more often on the bill than on your EOB for Sep 14, 2026. The insurer processed it once, so the extra line likely shouldn't be on your bill. Amount is based on the insurer's allowed amount, because your deductible applies.",
    "billLineIds": [
     "B2",
     "B3"

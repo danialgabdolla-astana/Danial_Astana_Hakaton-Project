@@ -14,6 +14,8 @@ import { useMessages } from "@/lib/i18n/client";
 
 type Tab = "letter" | "insurer" | "script" | "deadlines";
 
+const HOLD_ASK = "Please put my account on hold while the dispute is open, so it doesn't go to collections.";
+
 function fillPack(p: DisputePack, values: Record<string, string>): DisputePack {
   const f = (t: string) => fillPlaceholders(t, values);
   const s = p.phoneScript;
@@ -23,7 +25,8 @@ function fillPack(p: DisputePack, values: Record<string, string>): DisputePack {
     insurerLetter: p.insurerLetter ? f(p.insurerLetter) : p.insurerLetter,
     phoneScript: {
       opening: f(s.opening),
-      asks: s.asks.map(f),
+      // The account hold is the most important ask; add it if the model left it out.
+      asks: (s.asks.some((a) => /\bhold\b|collections/i.test(a)) ? s.asks : [HOLD_ASK, ...s.asks]).map(f),
       ifTheyPushBack: s.ifTheyPushBack.map(f),
       escalation: s.escalation.map(f),
       writeDown: s.writeDown.map(f),

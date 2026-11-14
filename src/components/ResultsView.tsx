@@ -133,6 +133,10 @@ export function ResultsView() {
         </section>
       </div>
 
+      {summary.disputableTotal > 0 && (
+        <p className="no-print rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">⏸ {m.results.holdTip}</p>
+      )}
+
       {verifying ? (
         <p className="rounded-2xl border border-stone-200 bg-white p-6 text-center">{m.results.confirming}</p>
       ) : token ? (

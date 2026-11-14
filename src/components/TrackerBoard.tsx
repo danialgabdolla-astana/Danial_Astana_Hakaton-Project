@@ -9,7 +9,8 @@ import { formatUsd } from "@/lib/money";
 import { STATUSES, ensureDispute, getDisputes, isDisputeList, saveDisputes, today, type Dispute, type Status } from "@/lib/tracker";
 import { SAMPLE_TOKEN } from "@/lib/client-store";
 import { Analysis } from "@/lib/schemas";
-import { useMessages } from "@/lib/i18n/client";
+import { useLocale, useMessages } from "@/lib/i18n/client";
+import { formatDate } from "@/lib/dates";
 
 export function TrackerBoard() {
   const t = useMessages().tracker;
@@ -124,6 +125,7 @@ function DisputeCard({ d, onChange, onRemove }: { d: Dispute; onChange: (p: Part
   const [showCall, setShowCall] = useState(false);
   const [analysis] = useState(() => store.getAnalysis(d.id));
   const t = useMessages().tracker;
+  const locale = useLocale();
   const stepIndex = STATUSES.indexOf(d.status);
 
   function addCall() {
@@ -137,7 +139,7 @@ function DisputeCard({ d, onChange, onRemove }: { d: Dispute; onChange: (p: Part
     const ics = buildIcs({
       title: t.icsTitle(d.provider),
       date: new Date(d.followUpDate + "T09:00:00"),
-      description: t.icsBody({ provider: d.provider, amount: formatUsd(d.disputable), sent: d.letterSentAt }),
+      description: t.icsBody({ provider: d.provider, amount: formatUsd(d.disputable), sent: d.letterSentAt ? formatDate(d.letterSentAt, locale) : null }),
       uid: `${d.id}-${d.followUpDate}`,
     });
     downloadText(`billcheck-follow-up-${d.followUpDate}.ics`, ics, "text/calendar");
@@ -151,7 +153,7 @@ function DisputeCard({ d, onChange, onRemove }: { d: Dispute; onChange: (p: Part
             {d.provider}
             {analysis?.sample && <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 align-middle text-xs font-medium text-amber-900">{t.sampleBadge}</span>}
           </h2>
-          <p className="text-sm text-stone-600">{t.meta({ bill: formatUsd(d.billBalance), disputing: formatUsd(d.disputable), started: d.createdAt })}</p>
+          <p className="text-sm text-stone-600">{t.meta({ bill: formatUsd(d.billBalance), disputing: formatUsd(d.disputable), started: formatDate(d.createdAt, locale) })}</p>
         </div>
         <div className="flex gap-2 text-sm">
           <Link href={`/results?id=${d.id}`} className="rounded-lg border border-stone-300 px-3 py-1.5 hover:bg-stone-100">
@@ -240,7 +242,7 @@ function DisputeCard({ d, onChange, onRemove }: { d: Dispute; onChange: (p: Part
             {d.calls.map((c) => (
               <li key={c.id} className="rounded-lg border border-stone-200 p-3">
                 <div className="font-medium">
-                  {c.date} · {c.who || t.unknownRep}{" "}
+                  {formatDate(c.date, locale)} · {c.who || t.unknownRep}{" "}
                   {c.ref && (
                     <span className="text-stone-500">
                       · {t.refShort} {c.ref}

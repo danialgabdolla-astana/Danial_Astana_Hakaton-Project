@@ -93,7 +93,8 @@ describe("translations", () => {
         if (locale === "en") expect(t).toEqual({ title: d.title, detail: d.detail });
       }
     }
-    expect(deadlineText(ds.find((d) => d.key === "dueDate")!, MESSAGES.fr).title).toContain("2026-11-26");
+    expect(deadlineText(ds.find((d) => d.key === "dueDate")!, MESSAGES.en).title).toContain("Nov 26, 2026");
+    expect(deadlineText(ds.find((d) => d.key === "dueDate")!, MESSAGES.fr).title).toMatch(/26 nov\.? 2026/);
   });
 
   it("translates API errors by code and keeps the server message otherwise", () => {

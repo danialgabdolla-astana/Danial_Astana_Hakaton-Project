@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { anthropic, jsonFromText, MODEL, UserError } from "./anthropic";
 import { LETTER_SYSTEM, LETTER_TOOL } from "./prompts/letter";
+import { usDatesInText, formatDate } from "./dates";
 import { DisputePack, type BillDoc, type Deadline, type EobDoc, type Flag, type Summary } from "./schemas";
 
 export { DisputePack, type Deadline } from "./schemas";
@@ -16,7 +17,7 @@ export function deadlinesFor(flags: Flag[], bill: BillDoc): Deadline[] {
     d.push({
       key: "dueDate",
       vars: { date: bill.dueDate },
-      title: `Bill due date on the statement: ${bill.dueDate}`,
+      title: `Bill due date on the statement: ${formatDate(bill.dueDate)}`,
       detail: "Ask for the due date to be extended while the bill is under review.",
       daysFromNow: null,
     });
@@ -47,7 +48,8 @@ export async function writeDisputePack(bill: BillDoc, eobs: EobDoc[], flags: Fla
     flags: flags.map((f) => ({ ...f, billLineIds: f.billLineIds, eobLineIds: f.eobLineIds })),
   };
   const messages: Parameters<ReturnType<typeof anthropic>["messages"]["create"]>[0]["messages"] = [
-    { role: "user", content: `Write the dispute pack for this case. Data:\n${JSON.stringify(facts, null, 1)}` },
+    // Dates go to the model already in US style, so the letter and script never show "2026-09-14".
+    { role: "user", content: `Write the dispute pack for this case. Data:\n${usDatesInText(JSON.stringify(facts, null, 1))}` },
   ];
 
   for (let attempt = 0; attempt < 2; attempt++) {
