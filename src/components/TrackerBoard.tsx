@@ -7,10 +7,13 @@ import { buildIcs, downloadText } from "@/lib/ics";
 import { CaseLink } from "./CaseLink";
 import { formatUsd } from "@/lib/money";
 import { STATUSES, getDisputes, isDisputeList, saveDisputes, today, type Dispute, type Status } from "@/lib/tracker";
+import { useMessages } from "@/lib/i18n/client";
 
 export function TrackerBoard() {
+  const t = useMessages().tracker;
   const [list, setList] = useState<Dispute[]>(() => getDisputes());
-  const [msg, setMsg] = useState("");
+  // Messages are kept as data so they follow a language switch.
+  const [msg, setMsg] = useState<{ imported: number } | { bad: true } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   function update(id: string, patch: Partial<Dispute>) {
@@ -20,7 +23,7 @@ export function TrackerBoard() {
   }
 
   function remove(id: string) {
-    if (!confirm("Remove this dispute from your tracker?")) return;
+    if (!confirm(t.removeConfirm)) return;
     const next = list.filter((d) => d.id !== id);
     setList(next);
     saveDisputes(next);
@@ -38,30 +41,31 @@ export function TrackerBoard() {
         const merged = [...data, ...list.filter((d) => !data.some((x: Dispute) => x.id === d.id))];
         setList(merged);
         saveDisputes(merged);
-        setMsg(`Imported ${data.length} dispute${data.length === 1 ? "" : "s"}.`);
+        setMsg({ imported: data.length });
       } catch {
-        setMsg("That file isn't a BillCheck export.");
+        setMsg({ bad: true });
       }
     });
   }
 
+  const checkABill = useMessages().common.checkABill;
   const saved = list.reduce((s, d) => s + (d.status === "Resolved" ? d.amountSaved : 0), 0);
   const open = list.filter((d) => d.status !== "Resolved").length;
 
   return (
     <div className="space-y-6">
       <div className="grid gap-3 sm:grid-cols-3">
-        <Stat label="You've saved" value={formatUsd(saved, false)} accent />
-        <Stat label="Open disputes" value={String(open)} />
-        <Stat label="In dispute" value={formatUsd(list.filter((d) => d.status !== "Resolved").reduce((s, d) => s + d.disputable, 0), false)} />
+        <Stat label={t.saved} value={formatUsd(saved, false)} accent />
+        <Stat label={t.open} value={String(open)} />
+        <Stat label={t.inDispute} value={formatUsd(list.filter((d) => d.status !== "Resolved").reduce((s, d) => s + d.disputable, 0), false)} />
       </div>
 
       <div className="flex flex-wrap gap-2 text-sm">
         <button onClick={exportJson} disabled={!list.length} className="rounded-lg border border-stone-300 bg-white px-3 py-2 hover:bg-stone-100 disabled:opacity-50">
-          Export (JSON)
+          {t.export}
         </button>
         <button onClick={() => fileRef.current?.click()} className="rounded-lg border border-stone-300 bg-white px-3 py-2 hover:bg-stone-100">
-          Import
+          {t.import}
         </button>
         <input
           ref={fileRef}
@@ -74,15 +78,15 @@ export function TrackerBoard() {
             e.target.value = "";
           }}
         />
-        <span className="self-center text-stone-500">Your tracker lives in this browser only. Use a private case link to open a case elsewhere, or export everything as a backup.</span>
+        <span className="self-center text-stone-500">{t.storageNote}</span>
       </div>
-      {msg && <p className="text-sm text-teal-800">{msg}</p>}
+      {msg && <p className="text-sm text-teal-800">{"imported" in msg ? t.imported(msg.imported) : t.badImport}</p>}
 
       {list.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-stone-300 bg-white p-10 text-center">
-          <p className="text-stone-600">No disputes yet. Check a bill and unlock the dispute pack to start tracking.</p>
+          <p className="text-stone-600">{t.empty}</p>
           <Link href="/check" className="mt-4 inline-block rounded-xl bg-teal-700 px-5 py-3 font-medium text-white">
-            Check a bill
+            {checkABill}
           </Link>
         </div>
       ) : (
@@ -100,6 +104,7 @@ function DisputeCard({ d, onChange, onRemove }: { d: Dispute; onChange: (p: Part
   const [call, setCall] = useState({ date: today(), who: "", ref: "", notes: "" });
   const [showCall, setShowCall] = useState(false);
   const [analysis] = useState(() => store.getAnalysis(d.id));
+  const t = useMessages().tracker;
   const stepIndex = STATUSES.indexOf(d.status);
 
   function addCall() {
@@ -111,9 +116,9 @@ function DisputeCard({ d, onChange, onRemove }: { d: Dispute; onChange: (p: Part
 
   function calendar() {
     const ics = buildIcs({
-      title: `Follow up: ${d.provider} bill dispute`,
+      title: t.icsTitle(d.provider),
       date: new Date(d.followUpDate + "T09:00:00"),
-      description: `Call ${d.provider} billing. Disputing ${formatUsd(d.disputable)}. Reference your letter${d.letterSentAt ? ` sent ${d.letterSentAt}` : ""} and earlier calls. — BillCheck`,
+      description: t.icsBody({ provider: d.provider, amount: formatUsd(d.disputable), sent: d.letterSentAt }),
       uid: `${d.id}-${d.followUpDate}`,
     });
     downloadText(`billcheck-follow-up-${d.followUpDate}.ics`, ics, "text/calendar");
@@ -124,28 +129,26 @@ function DisputeCard({ d, onChange, onRemove }: { d: Dispute; onChange: (p: Part
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold">{d.provider}</h2>
-          <p className="text-sm text-stone-600">
-            Bill {formatUsd(d.billBalance)} · disputing <strong>{formatUsd(d.disputable)}</strong> · started {d.createdAt}
-          </p>
+          <p className="text-sm text-stone-600">{t.meta({ bill: formatUsd(d.billBalance), disputing: formatUsd(d.disputable), started: d.createdAt })}</p>
         </div>
         <div className="flex gap-2 text-sm">
           <Link href={`/results?id=${d.id}`} className="rounded-lg border border-stone-300 px-3 py-1.5 hover:bg-stone-100">
-            Open results
+            {t.openResults}
           </Link>
-          <button onClick={onRemove} className="rounded-lg px-3 py-1.5 text-stone-500 hover:bg-stone-100" aria-label={`Remove ${d.provider}`}>
-            Remove
+          <button onClick={onRemove} className="rounded-lg px-3 py-1.5 text-stone-500 hover:bg-stone-100" aria-label={t.removeAria(d.provider)}>
+            {t.remove}
           </button>
         </div>
       </div>
 
       {analysis && (
         <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-stone-600">
-          <span>Open this case on another device:</span>
+          <span>{t.otherDevice}</span>
           <CaseLink analysis={analysis} compact />
         </div>
       )}
 
-      <ol className="mt-4 flex flex-wrap gap-1 text-xs sm:text-sm" aria-label="Status">
+      <ol className="mt-4 flex flex-wrap gap-1 text-xs sm:text-sm" aria-label={t.statusLabel}>
         {STATUSES.map((s, i) => (
           <li key={s}>
             <button
@@ -153,7 +156,7 @@ function DisputeCard({ d, onChange, onRemove }: { d: Dispute; onChange: (p: Part
               aria-current={d.status === s ? "step" : undefined}
               className={`rounded-full px-3 py-1.5 ${i < stepIndex ? "bg-teal-100 text-teal-900" : i === stepIndex ? "bg-teal-700 text-white" : "bg-stone-100 text-stone-600"}`}
             >
-              {s}
+              {t.status[s]}
             </button>
           </li>
         ))}
@@ -161,7 +164,7 @@ function DisputeCard({ d, onChange, onRemove }: { d: Dispute; onChange: (p: Part
 
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
         <label className="text-sm">
-          <span className="text-stone-600">Follow-up date</span>
+          <span className="text-stone-600">{t.followUp}</span>
           <input
             type="date"
             value={d.followUpDate}
@@ -171,12 +174,12 @@ function DisputeCard({ d, onChange, onRemove }: { d: Dispute; onChange: (p: Part
         </label>
         <div className="flex items-end">
           <button onClick={calendar} className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm hover:bg-stone-100">
-            📅 Add reminder to calendar
+            {t.addCalendar}
           </button>
         </div>
         {d.status === "Resolved" ? (
           <label className="text-sm">
-            <span className="text-stone-600">Amount saved ($)</span>
+            <span className="text-stone-600">{t.amountSaved}</span>
             <input
               type="number"
               min={0}
@@ -186,36 +189,41 @@ function DisputeCard({ d, onChange, onRemove }: { d: Dispute; onChange: (p: Part
             />
           </label>
         ) : (
-          <div className="flex items-end text-sm text-stone-500">Mark as Resolved to log what you saved.</div>
+          <div className="flex items-end text-sm text-stone-500">{t.markResolved}</div>
         )}
       </div>
 
       <div className="mt-5">
         <div className="flex items-center justify-between">
-          <h3 className="font-medium">Call log</h3>
+          <h3 className="font-medium">{t.callLog}</h3>
           <button onClick={() => setShowCall((v) => !v)} className="text-sm font-medium text-teal-800 hover:underline">
-            {showCall ? "Cancel" : "+ Log a call"}
+            {showCall ? t.cancel : t.logCall}
           </button>
         </div>
         {showCall && (
           <div className="mt-3 grid gap-2 rounded-xl bg-stone-50 p-3 sm:grid-cols-4">
-            <input type="date" aria-label="Call date" value={call.date} onChange={(e) => setCall({ ...call, date: e.target.value })} className="rounded-lg border border-stone-300 px-3 py-2 text-sm" />
-            <input placeholder="Who you spoke to" aria-label="Who you spoke to" value={call.who} onChange={(e) => setCall({ ...call, who: e.target.value })} className="rounded-lg border border-stone-300 px-3 py-2 text-sm" />
-            <input placeholder="Reference #" aria-label="Reference number" value={call.ref} onChange={(e) => setCall({ ...call, ref: e.target.value })} className="rounded-lg border border-stone-300 px-3 py-2 text-sm" />
+            <input type="date" aria-label={t.callDate} value={call.date} onChange={(e) => setCall({ ...call, date: e.target.value })} className="rounded-lg border border-stone-300 px-3 py-2 text-sm" />
+            <input placeholder={t.who} aria-label={t.who} value={call.who} onChange={(e) => setCall({ ...call, who: e.target.value })} className="rounded-lg border border-stone-300 px-3 py-2 text-sm" />
+            <input placeholder={t.ref} aria-label={t.refAria} value={call.ref} onChange={(e) => setCall({ ...call, ref: e.target.value })} className="rounded-lg border border-stone-300 px-3 py-2 text-sm" />
             <button onClick={addCall} className="rounded-lg bg-teal-700 px-3 py-2 text-sm font-medium text-white hover:bg-teal-800">
-              Save call
+              {t.saveCall}
             </button>
-            <textarea placeholder="What they said / promised" aria-label="Notes" value={call.notes} onChange={(e) => setCall({ ...call, notes: e.target.value })} className="rounded-lg border border-stone-300 px-3 py-2 text-sm sm:col-span-4" rows={2} />
+            <textarea placeholder={t.notes} aria-label={t.notesAria} value={call.notes} onChange={(e) => setCall({ ...call, notes: e.target.value })} className="rounded-lg border border-stone-300 px-3 py-2 text-sm sm:col-span-4" rows={2} />
           </div>
         )}
         {d.calls.length === 0 ? (
-          <p className="mt-2 text-sm text-stone-500">No calls logged yet. Always write down the rep&apos;s name and a reference number.</p>
+          <p className="mt-2 text-sm text-stone-500">{t.noCalls}</p>
         ) : (
           <ul className="mt-2 space-y-2 text-sm">
             {d.calls.map((c) => (
               <li key={c.id} className="rounded-lg border border-stone-200 p-3">
                 <div className="font-medium">
-                  {c.date} · {c.who || "Unknown rep"} {c.ref && <span className="text-stone-500">· ref {c.ref}</span>}
+                  {c.date} · {c.who || t.unknownRep}{" "}
+                  {c.ref && (
+                    <span className="text-stone-500">
+                      · {t.refShort} {c.ref}
+                    </span>
+                  )}
                 </div>
                 {c.notes && <p className="text-stone-600">{c.notes}</p>}
               </li>

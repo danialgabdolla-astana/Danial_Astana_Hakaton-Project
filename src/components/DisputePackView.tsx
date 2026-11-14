@@ -9,6 +9,8 @@ import type { Analysis } from "@/lib/schemas";
 import type { DisputePack } from "@/lib/schemas";
 import { addDays, ensureDispute, getDisputes, saveDisputes, today } from "@/lib/tracker";
 import { MULTILINE, fillPlaceholders, findPlaceholders, letterDate } from "@/lib/placeholders";
+import { apiErrorText, deadlineText } from "@/lib/i18n";
+import { useMessages } from "@/lib/i18n/client";
 
 type Tab = "letter" | "insurer" | "script" | "deadlines";
 
@@ -44,12 +46,14 @@ function scriptText(p: DisputePack): string {
 
 export function DisputePackView({ analysis, token }: { analysis: Analysis; token: string }) {
   const router = useRouter();
+  const m = useMessages();
+  const T = m.pack;
   const [rawPack, setPack] = useState<DisputePack | null>(() => store.getPack<DisputePack>(analysis.analysisId));
   const [details, setDetails] = useState<Record<string, string>>(() => store.getDetails());
   const [showDetails, setShowDetails] = useState(false);
   const [tab, setTab] = useState<Tab>("letter");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<{ body: unknown } | null>(null);
   const [copied, setCopied] = useState(false);
 
   // Writing to localStorage is a side effect, so it lives in an effect (no React state is set here).
@@ -59,19 +63,22 @@ export function DisputePackView({ analysis, token }: { analysis: Analysis; token
 
   async function generate() {
     setLoading(true);
-    setError("");
+    setError(null);
     try {
       const res = await fetch("/api/letter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ bill: analysis.bill, eobs: analysis.eobs, context: analysis.context, token }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Couldn't write the letter.");
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data) {
+        setError({ body: data });
+        return;
+      }
       store.savePack(analysis.analysisId, data);
       setPack(data);
-    } catch (e) {
-      setError((e as Error).message);
+    } catch {
+      setError({ body: null });
     } finally {
       setLoading(false);
     }
@@ -94,21 +101,20 @@ export function DisputePackView({ analysis, token }: { analysis: Analysis; token
   if (!rawPack) {
     return (
       <section className="rounded-2xl border border-teal-200 bg-white p-6 text-center">
-        <p className="text-sm font-medium text-teal-800">✓ Unlocked</p>
-        <h2 className="mt-1 text-xl font-semibold">Your dispute pack is ready to write</h2>
-        <p className="mx-auto mt-2 max-w-xl text-sm text-stone-600">
-          We&apos;ll write a letter and a phone script using only the issues found above — no new claims.
-        </p>
+        <p className="text-sm font-medium text-teal-800">{T.unlocked}</p>
+        <h2 className="mt-1 text-xl font-semibold">{T.readyTitle}</h2>
+        <p className="mx-auto mt-2 max-w-xl text-sm text-stone-600">{T.readyBody}</p>
+        {T.englishNote && <p className="mx-auto mt-2 max-w-xl text-sm text-stone-500">{T.englishNote}</p>}
         <button
           onClick={generate}
           disabled={loading}
           className="mt-5 rounded-xl bg-teal-700 px-6 py-3 font-semibold text-white hover:bg-teal-800 disabled:opacity-60"
         >
-          {loading ? "Writing your letter… (about 30 seconds)" : "Write my letter & phone script"}
+          {loading ? T.writing : T.write}
         </button>
         {error && (
           <p role="alert" className="mt-3 text-sm text-red-700">
-            {error}
+            {apiErrorText(error.body, m, T.failed)}
           </p>
         )}
       </section>
@@ -129,15 +135,15 @@ export function DisputePackView({ analysis, token }: { analysis: Analysis; token
   const filledCount = fields.filter((f) => values[f]?.trim()).length;
   const pack = fillPack(rawPack, values);
   const hints: Record<string, string> = {
-    "Account number": analysis.bill.accountRef ? `on your bill, ends in ${analysis.bill.accountRef.slice(-4)}` : "on your bill",
-    "Claim number": analysis.eobs[0]?.claimRef ? `on your EOB, ends in ${analysis.eobs[0].claimRef.slice(-4)}` : "on your EOB",
+    "Account number": T.hintOnBill(analysis.bill.accountRef ? analysis.bill.accountRef.slice(-4) : null),
+    "Claim number": T.hintOnEob(analysis.eobs[0]?.claimRef ? analysis.eobs[0].claimRef.slice(-4) : null),
   };
 
   const tabs: { id: Tab; label: string }[] = [
-    { id: "letter", label: "Letter to billing" },
-    ...(pack.insurerLetter ? [{ id: "insurer" as const, label: "Request to insurer" }] : []),
-    { id: "script", label: "Phone script" },
-    { id: "deadlines", label: "Deadlines" },
+    { id: "letter", label: T.tabs.letter },
+    ...(pack.insurerLetter ? [{ id: "insurer" as const, label: T.tabs.insurer }] : []),
+    { id: "script", label: T.tabs.script },
+    { id: "deadlines", label: T.tabs.deadlines },
   ];
   const current = tab === "letter" ? pack.billingLetter : tab === "insurer" ? pack.insurerLetter ?? "" : tab === "script" ? scriptText(pack) : "";
 
@@ -157,6 +163,7 @@ export function DisputePackView({ analysis, token }: { analysis: Analysis; token
         ))}
       </div>
 
+      {T.englishNote && tab !== "deadlines" && <p className="no-print border-b border-stone-200 px-5 py-2 text-sm text-stone-500">{T.englishNote}</p>}
       {fields.length > 0 && tab !== "deadlines" && (
         <div className="no-print border-b border-stone-200 bg-stone-50 px-5 py-3">
           <button
@@ -165,12 +172,9 @@ export function DisputePackView({ analysis, token }: { analysis: Analysis; token
             className="flex w-full items-center justify-between gap-3 text-left text-sm"
           >
             <span>
-              <span className="font-medium">Your details</span>{" "}
-              <span className="text-stone-600">
-                — {filledCount} of {fields.length} filled. Stays in this browser; never sent to our server.
-              </span>
+              <span className="font-medium">{T.detailsTitle}</span> <span className="text-stone-600">{T.detailsCount(filledCount, fields.length)}</span>
             </span>
-            <span className="text-teal-800">{showDetails ? "Hide" : "Fill in"}</span>
+            <span className="text-teal-800">{showDetails ? T.hide : T.fillIn}</span>
           </button>
           {showDetails && (
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -185,7 +189,7 @@ export function DisputePackView({ analysis, token }: { analysis: Analysis; token
                 };
                 return (
                   <label key={name} htmlFor={id} className={`block text-sm ${MULTILINE.has(name) ? "sm:col-span-2" : ""}`}>
-                    <span className="mb-1 block text-stone-700">{name}</span>
+                    <span className="mb-1 block text-stone-700">{T.fieldNames[name] ?? name}</span>
                     {MULTILINE.has(name) ? <textarea rows={2} {...common} /> : <input type="text" {...common} />}
                   </label>
                 );
@@ -198,26 +202,31 @@ export function DisputePackView({ analysis, token }: { analysis: Analysis; token
       <div className="p-5">
         {tab === "deadlines" ? (
           <ol className="space-y-3">
-            {pack.deadlines.map((d, i) => (
-              <li key={i} className="rounded-xl bg-stone-50 p-3">
-                <div className="font-medium">
-                  {d.daysFromNow !== null ? `${d.daysFromNow === 0 ? "Today" : `In ${d.daysFromNow} day${d.daysFromNow > 1 ? "s" : ""}`} — ` : ""}
-                  {d.title}
-                </div>
-                <div className="text-sm text-stone-600">{d.detail}</div>
-              </li>
-            ))}
+            {pack.deadlines.map((d, i) => {
+              const t = deadlineText(d, m);
+              return (
+                <li key={i} className="rounded-xl bg-stone-50 p-3">
+                  <div className="font-medium">
+                    {d.daysFromNow !== null ? `${d.daysFromNow === 0 ? T.today : T.inDays(d.daysFromNow)} — ` : ""}
+                    {t.title}
+                  </div>
+                  <div className="text-sm text-stone-600">{t.detail}</div>
+                </li>
+              );
+            })}
           </ol>
         ) : tab === "script" ? (
           <div className="print-area space-y-4 text-[15px] leading-relaxed">
-            <Block title="Opening">{pack.phoneScript.opening}</Block>
-            <ListBlock title="Ask for" items={pack.phoneScript.asks} />
-            <ListBlock title="If they push back" items={pack.phoneScript.ifTheyPushBack} />
-            <ListBlock title="Escalate" items={pack.phoneScript.escalation} />
-            <ListBlock title="Write down" items={pack.phoneScript.writeDown} />
+            <Block title={T.script.opening}>{pack.phoneScript.opening}</Block>
+            <ListBlock title={T.script.asks} items={pack.phoneScript.asks} />
+            <ListBlock title={T.script.pushBack} items={pack.phoneScript.ifTheyPushBack} />
+            <ListBlock title={T.script.escalation} items={pack.phoneScript.escalation} />
+            <ListBlock title={T.script.writeDown} items={pack.phoneScript.writeDown} />
           </div>
         ) : (
-          <pre className="print-area whitespace-pre-wrap font-sans text-[15px] leading-relaxed">{current}</pre>
+          <pre lang="en" className="print-area whitespace-pre-wrap font-sans text-[15px] leading-relaxed">
+            {current}
+          </pre>
         )}
 
         {tab !== "deadlines" && (
@@ -230,31 +239,29 @@ export function DisputePackView({ analysis, token }: { analysis: Analysis; token
               }}
               className="rounded-lg border border-stone-300 px-4 py-2 text-sm hover:bg-stone-100"
             >
-              {copied ? "Copied ✓" : "Copy"}
+              {copied ? T.copied : T.copy}
             </button>
             <button
               onClick={() => downloadText(`billcheck-${tab}.txt`, current)}
               className="rounded-lg border border-stone-300 px-4 py-2 text-sm hover:bg-stone-100"
             >
-              Download .txt
+              {T.download}
             </button>
             <button onClick={() => window.print()} className="rounded-lg border border-stone-300 px-4 py-2 text-sm hover:bg-stone-100">
-              Print / Save as PDF
+              {T.print}
             </button>
           </div>
         )}
       </div>
 
       <div className="no-print flex flex-wrap items-center justify-between gap-3 border-t border-stone-200 bg-stone-50 p-4">
-        <p className="text-sm text-stone-600">
-          {filledCount < fields.length ? "Fill in your details above, send it, " : "Send it, "}then track the dispute until it&apos;s resolved.
-        </p>
+        <p className="text-sm text-stone-600">{T.footer(filledCount >= fields.length)}</p>
         <div className="flex gap-2">
           <button onClick={markSent} className="rounded-lg bg-teal-700 px-4 py-2 text-sm font-medium text-white hover:bg-teal-800">
-            I sent the letter → track it
+            {T.sent}
           </button>
           <Link href="/tracker" className="rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm hover:bg-stone-100">
-            Open tracker
+            {T.openTracker}
           </Link>
         </div>
       </div>

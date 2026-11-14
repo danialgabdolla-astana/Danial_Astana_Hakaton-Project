@@ -5,9 +5,10 @@ import { useRouter } from "next/navigation";
 import { prepareFile } from "@/lib/compress";
 import { store } from "@/lib/client-store";
 import type { Analysis } from "@/lib/schemas";
+import { apiErrorText } from "@/lib/i18n";
+import { useMessages } from "@/lib/i18n/client";
 
 const ACCEPT = "application/pdf,image/jpeg,image/png,image/webp";
-const STEPS = ["Reading your bill…", "Reading your EOB…", "Matching bill lines to your EOB…", "Checking 8 billing rules…", "Adding up what you can dispute…"];
 
 type DocState = { files: File[]; text: string; mode: "file" | "text" };
 const empty = (): DocState => ({ files: [], text: "", mode: "file" });
@@ -20,6 +21,9 @@ const SAMPLES = {
 
 export function Uploader() {
   const router = useRouter();
+  const m = useMessages();
+  const U = m.uploader;
+  const STEPS = U.steps;
   const [bill, setBill] = useState<DocState>(empty);
   const [eob, setEob] = useState<DocState>(empty);
   const [showPlan, setShowPlan] = useState(false);
@@ -33,12 +37,12 @@ export function Uploader() {
     if (!busy) return;
     const t = setInterval(() => setStep((s) => Math.min(s + 1, STEPS.length - 1)), 4500);
     return () => clearInterval(t);
-  }, [busy]);
+  }, [busy, STEPS.length]);
 
   async function submit(billFiles: File[], billText: string, eobFiles: File[], eobText: string, sample = false) {
     setError("");
-    if (!billFiles.length && !billText.trim()) return setError("Add your itemized bill — a PDF, a photo, or pasted text.");
-    if (!eobFiles.length && !eobText.trim()) return setError("Add your EOB (Explanation of Benefits) from your insurer.");
+    if (!billFiles.length && !billText.trim()) return setError(U.needBill);
+    if (!eobFiles.length && !eobText.trim()) return setError(U.needEob);
     setStep(0);
     setBusy(true);
     try {
@@ -56,8 +60,8 @@ export function Uploader() {
         form.append("context", JSON.stringify(ctx));
       }
       const res = await fetch("/api/analyze", { method: "POST", body: form });
-      const data = await res.json().catch(() => ({ error: "The server returned an unexpected response." }));
-      if (!res.ok) throw new Error(data.error ?? "Something went wrong. Please try again.");
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data) throw new Error(apiErrorText(data, m, m.errors.generic));
       const analysis = data as Analysis;
       store.saveAnalysis(analysis);
       router.push(`/results?id=${analysis.analysisId}`);
@@ -106,7 +110,7 @@ export function Uploader() {
       <div className="rounded-2xl border border-stone-200 bg-white p-8 text-center shadow-sm" role="status" aria-live="polite">
         <div className="mx-auto mb-5 h-10 w-10 animate-spin rounded-full border-4 border-teal-700 border-t-transparent" aria-hidden />
         <p className="text-lg font-medium">{STEPS[step]}</p>
-        <p className="mt-2 text-sm text-stone-500">This usually takes 20–60 seconds. Your files are processed in memory and never stored.</p>
+        <p className="mt-2 text-sm text-stone-500">{U.wait}</p>
         <ol className="mx-auto mt-6 max-w-xs space-y-1 text-left text-sm">
           {STEPS.map((s, i) => (
             <li key={s} className={i < step ? "text-teal-700" : i === step ? "font-medium" : "text-stone-400"}>
@@ -128,15 +132,15 @@ export function Uploader() {
     >
       <div className="grid gap-4 md:grid-cols-2">
         <DocInput
-          title="1. Your itemized bill"
-          hint="From the hospital or doctor's office. Ask for the itemized version with codes if you only have a summary."
+          title={U.billTitle}
+          hint={U.billHint}
           state={bill}
           onChange={setBill}
           id="bill"
         />
         <DocInput
-          title="2. Your EOB"
-          hint="The Explanation of Benefits from your insurer — usually in your insurer's app or mailed. It says “This is not a bill”."
+          title={U.eobTitle}
+          hint={U.eobHint}
           state={eob}
           onChange={setEob}
           id="eob"
@@ -150,23 +154,23 @@ export function Uploader() {
           className="text-sm font-medium text-teal-800 underline-offset-2 hover:underline"
           aria-expanded={showPlan}
         >
-          {showPlan ? "− Hide" : "+ Add"} plan details (optional — makes amounts more precise)
+          {U.planToggle(showPlan)}
         </button>
         {showPlan && (
           <div className="mt-4 grid gap-3 sm:grid-cols-4">
-            <NumField label="Deductible ($)" value={plan.deductible} onChange={(v) => setPlan({ ...plan, deductible: v })} />
-            <NumField label="Met so far ($)" value={plan.deductibleMet} onChange={(v) => setPlan({ ...plan, deductibleMet: v })} />
-            <NumField label="Coinsurance (%)" value={plan.coinsurancePct} onChange={(v) => setPlan({ ...plan, coinsurancePct: v })} />
+            <NumField label={U.deductible} value={plan.deductible} onChange={(v) => setPlan({ ...plan, deductible: v })} />
+            <NumField label={U.met} value={plan.deductibleMet} onChange={(v) => setPlan({ ...plan, deductibleMet: v })} />
+            <NumField label={U.coinsurance} value={plan.coinsurancePct} onChange={(v) => setPlan({ ...plan, coinsurancePct: v })} />
             <label className="text-sm">
-              <span className="text-stone-600">Provider in-network?</span>
+              <span className="text-stone-600">{U.inNetwork}</span>
               <select
                 className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2"
                 value={plan.inNetwork}
                 onChange={(e) => setPlan({ ...plan, inNetwork: e.target.value })}
               >
-                <option value="unknown">Not sure</option>
-                <option value="yes">Yes</option>
-                <option value="no">No</option>
+                <option value="unknown">{U.notSure}</option>
+                <option value="yes">{U.yes}</option>
+                <option value="no">{U.no}</option>
               </select>
             </label>
           </div>
@@ -181,24 +185,36 @@ export function Uploader() {
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <button type="submit" className="rounded-xl bg-teal-700 px-6 py-3 text-base font-semibold text-white shadow-sm hover:bg-teal-800">
-          Check my bill — free
+          {U.submit}
         </button>
         <button type="button" onClick={() => trySample("er")} className="rounded-xl border border-stone-300 bg-white px-6 py-3 text-base font-medium hover:bg-stone-100">
-          Try a sample: ER bill
+          {U.sampleEr}
         </button>
         <button type="button" onClick={() => trySample("anesthesia")} className="rounded-xl border border-stone-300 bg-white px-6 py-3 text-base font-medium hover:bg-stone-100">
-          Sample: surprise anesthesia bill
+          {U.sampleAnesthesia}
         </button>
       </div>
       <p className="text-sm text-stone-500">
-        Samples are fictional PDFs (
-        <a className="underline" href="/samples/riverside-bill.pdf" target="_blank">ER bill</a>,{" "}
-        <a className="underline" href="/samples/summit-eob.pdf" target="_blank">its EOB</a>;{" "}
-        <a className="underline" href="/samples/lakeshore-anesthesia-bill.pdf" target="_blank">anesthesia bill</a>,{" "}
-        <a className="underline" href="/samples/summit-eob-anesthesia.pdf" target="_blank">its EOB</a>) and go through the same AI + rules pipeline as yours.
+        {U.samplesPre}
+        <a className="underline" href="/samples/riverside-bill.pdf" target="_blank">
+          {U.samplesEr}
+        </a>
+        ,{" "}
+        <a className="underline" href="/samples/summit-eob.pdf" target="_blank">
+          {U.samplesEob}
+        </a>
+        ;{" "}
+        <a className="underline" href="/samples/lakeshore-anesthesia-bill.pdf" target="_blank">
+          {U.samplesAn}
+        </a>
+        ,{" "}
+        <a className="underline" href="/samples/summit-eob-anesthesia.pdf" target="_blank">
+          {U.samplesEob}
+        </a>
+        {U.samplesPost}
       </p>
       <p className="text-sm text-stone-500">
-        🔒 Files are processed in memory and never stored. We mask names, member IDs and account numbers. Uninsured? Cash-price help is coming soon.
+        {U.privacy}
       </p>
     </form>
   );
@@ -206,6 +222,7 @@ export function Uploader() {
 
 function DocInput({ title, hint, state, onChange, id }: { title: string; hint: string; state: DocState; onChange: (s: DocState) => void; id: string }) {
   const [drag, setDrag] = useState(false);
+  const U = useMessages().uploader;
   const add = (list: FileList | null) => {
     if (!list) return;
     const files = [...state.files, ...Array.from(list)].slice(0, 3);
@@ -229,7 +246,7 @@ function DocInput({ title, hint, state, onChange, id }: { title: string; hint: s
             onClick={() => onChange({ ...state, mode: m })}
             className={`flex-1 rounded-md px-3 py-1.5 ${state.mode === m ? "bg-white font-medium shadow-sm" : "text-stone-600"}`}
           >
-            {m === "file" ? "Upload PDF / photo" : "Paste text"}
+            {m === "file" ? U.upload : U.paste}
           </button>
         ))}
       </div>
@@ -251,8 +268,8 @@ function DocInput({ title, hint, state, onChange, id }: { title: string; hint: s
               drag ? "border-teal-600 bg-teal-50" : "border-stone-300 hover:border-teal-600"
             }`}
           >
-            <span className="font-medium text-teal-800">Choose files</span>
-            <span className="text-stone-500">or drag them here · PDF, JPG, PNG · up to 3 files</span>
+            <span className="font-medium text-teal-800">{U.chooseFiles}</span>
+            <span className="text-stone-500">{U.dragHint}</span>
           </label>
           <input id={`${id}-files`} type="file" accept={ACCEPT} multiple className="sr-only" onChange={(e) => add(e.target.files)} />
           {state.files.length > 0 && (
@@ -263,7 +280,7 @@ function DocInput({ title, hint, state, onChange, id }: { title: string; hint: s
                   <button
                     type="button"
                     className="ml-2 text-stone-500 hover:text-red-700"
-                    aria-label={`Remove ${f.name}`}
+                    aria-label={U.removeFile(f.name)}
                     onClick={() => onChange({ ...state, files: state.files.filter((_, j) => j !== i) })}
                   >
                     ✕
@@ -275,12 +292,12 @@ function DocInput({ title, hint, state, onChange, id }: { title: string; hint: s
         </>
       ) : (
         <label className="mt-3 block text-sm">
-          <span className="sr-only">Paste the document text</span>
+          <span className="sr-only">{U.pasteLabel}</span>
           <textarea
             value={state.text}
             onChange={(e) => onChange({ ...state, text: e.target.value })}
             rows={8}
-            placeholder="Copy the text from the PDF or your insurer's website and paste it here…"
+            placeholder={U.pastePlaceholder}
             className="w-full rounded-xl border border-stone-300 p-3"
           />
         </label>

@@ -30,7 +30,8 @@ Persona: *Jessica, 34, marketer in Ohio, HDHP through work, two kids. Her son's 
 5. **$19 unlock (Stripe Checkout, test mode):** dispute letter to the billing office, insurer review request when relevant, phone script with escalation phrases, deadlines.
 6. **Your details, locally:** the letter's `[Your name]`, `[Account number]`… placeholders are filled in the browser and never sent to the server.
 7. **Dispute tracker** (no login, localStorage): status, call log, follow-up date with calendar (.ics) export, "You've saved $X", JSON export/import.
-8. **Private case link instead of an account:** the whole case (results, unlock, letter, tracker entry) is deflate-compressed into the URL fragment (`/open#…`). Browsers never send the fragment to a server, so the user can bookmark it or email it to themselves and open the case on any device while we still store nothing. Opened links are size-capped and validated with zod.
+8. **English, Spanish and French:** a language picker in the header (English by default, saved in the browser). Flags, deadlines and server errors carry stable keys and parameters, so the whole flow is translated, while the dispute letter and phone script stay in English for US billing offices. Stripe Checkout opens in the same language.
+9. **Private case link instead of an account:** the whole case (results, unlock, letter, tracker entry) is deflate-compressed into the URL fragment (`/open#…`). Browsers never send the fragment to a server, so the user can bookmark it or email it to themselves and open the case on any device while we still store nothing. Opened links are size-capped and validated with zod.
 
 ## Architecture
 
@@ -101,9 +102,10 @@ The live demo sends the real PDFs through the real pipeline — no canned result
 | `src/lib/dispute.ts` | Letter/script generation; deadlines are rule-based |
 | `src/lib/redact.ts`, `src/lib/hash.ts`, `src/lib/unlock.ts` | Masking, analysis id, HMAC tokens |
 | `src/lib/case-link.ts`, `src/lib/placeholders.ts` | Private case links (compress + validate), letter placeholders |
+| `src/lib/i18n/*` | `en.ts` (the shape), `es.ts`, `fr.ts`; flag/deadline/error translation helpers; client locale hook |
 | `src/app/api/*` | `analyze`, `checkout`, `verify`, `letter` |
 | `src/components/*` | Uploader, SideBySide, FlagCard, Paywall, DisputePackView, TrackerBoard, CaseLink |
-| `tests/*` | Vitest (51 tests): every rule, both sample cases, matcher, tokens, redaction, case links, placeholders |
+| `tests/*` | Vitest (58 tests): every rule, both sample cases, matcher, tokens, redaction, case links, placeholders, translations (English templates match the server text exactly; every language has every message) |
 
 ## Payments
 

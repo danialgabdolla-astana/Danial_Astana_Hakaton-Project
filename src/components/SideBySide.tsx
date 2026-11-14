@@ -2,20 +2,11 @@
 
 import { formatUsd } from "@/lib/money";
 import type { Analysis, EobLine, Flag } from "@/lib/schemas";
-
-const RULE_SHORT: Record<Flag["ruleId"], string> = {
-  DUPLICATE_CHARGE: "Duplicate",
-  BILL_EXCEEDS_EOB: "Over EOB",
-  LINE_NOT_ON_EOB: "Not on EOB",
-  NO_INSURANCE_APPLIED: "No insurance",
-  BALANCE_BILLING_IN_NETWORK: "Balance billing",
-  POSSIBLE_SURPRISE_BILL: "Surprise bill?",
-  NOT_ITEMIZED: "Not itemized",
-  POSSIBLE_UNBUNDLING: "Ask about bundling",
-};
+import { useMessages } from "@/lib/i18n/client";
 
 /** Bill lines on the left, the matching EOB line on the right; flagged rows are highlighted. */
 export function SideBySide({ analysis, activeFlag }: { analysis: Analysis; activeFlag: string | null }) {
+  const t = useMessages().sbs;
   const eobLines = analysis.eobs.flatMap((e) => e.lines);
   const eobById = new Map(eobLines.map((l) => [l.id, l]));
   const matchFor = new Map(analysis.matches.map((m) => [m.billLineId, m.eobLineId]));
@@ -34,13 +25,13 @@ export function SideBySide({ analysis, activeFlag }: { analysis: Analysis; activ
     <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white">
       <div className="grid grid-cols-2 border-b border-stone-200 bg-stone-50 text-sm font-semibold">
         <div className="px-4 py-3">
-          Your bill <span className="font-normal text-stone-500">· {analysis.bill.providerName}</span>
+          {t.yourBill} <span className="font-normal text-stone-500">· {analysis.bill.providerName}</span>
         </div>
         <div className="border-l border-stone-200 px-4 py-3">
-          Your EOB <span className="font-normal text-stone-500">· {analysis.eobs.map((e) => e.insurerName).join(", ")}</span>
+          {t.yourEob} <span className="font-normal text-stone-500">· {analysis.eobs.map((e) => e.insurerName).join(", ")}</span>
         </div>
       </div>
-      {analysis.bill.lines.length === 0 && <p className="p-4 text-sm text-stone-600">This bill has no line items. Ask for an itemized bill.</p>}
+      {analysis.bill.lines.length === 0 && <p className="p-4 text-sm text-stone-600">{t.noLines}</p>}
       <ul>
         {analysis.bill.lines.map((b) => {
           const eobId = matchFor.get(b.id) ?? null;
@@ -58,27 +49,27 @@ export function SideBySide({ analysis, activeFlag }: { analysis: Analysis; activ
                   <span className="tabular-nums">{formatUsd(b.billedAmount)}</span>
                 </div>
                 <div className="text-xs text-stone-500">
-                  {b.serviceDate ?? "no date"} · {b.code ?? "no code"}
+                  {b.serviceDate ?? t.noDate} · {b.code ?? t.noCode}
                 </div>
                 {flags.length > 0 && (
                   <div className="flex flex-wrap gap-1">
                     {flags.map((f) => (
                       <span key={f.id} className="rounded-full bg-white px-2 py-0.5 text-xs font-medium ring-1 ring-stone-300">
-                        {RULE_SHORT[f.ruleId]}
+                        {t.short[f.ruleId]}
                       </span>
                     ))}
                   </div>
                 )}
               </div>
               <div className="border-l border-stone-200 px-4 py-3">
-                {e ? <EobCell e={e} flags={flagsForEob(e.id)} /> : <span className="text-sm italic text-stone-500">No matching line on your EOB</span>}
+                {e ? <EobCell e={e} flags={flagsForEob(e.id)} /> : <span className="text-sm italic text-stone-500">{t.noMatch}</span>}
               </div>
             </li>
           );
         })}
         {unmatchedEob.map((e) => (
           <li key={e.id} className="grid grid-cols-2 border-b border-stone-100 text-sm last:border-0">
-            <div className="px-4 py-3 text-sm italic text-stone-500">Not on your bill</div>
+            <div className="px-4 py-3 text-sm italic text-stone-500">{t.notOnBill}</div>
             <div className="border-l border-stone-200 px-4 py-3">
               <EobCell e={e} flags={analysis.flags.filter((f) => f.eobLineIds.includes(e.id) && f.ruleId === "POSSIBLE_SURPRISE_BILL")} />
             </div>
@@ -87,11 +78,11 @@ export function SideBySide({ analysis, activeFlag }: { analysis: Analysis; activ
       </ul>
       <div className="grid grid-cols-2 border-t border-stone-200 bg-stone-50 text-sm">
         <div className="flex justify-between px-4 py-3">
-          <span>Bill asks you to pay</span>
+          <span>{t.billAsks}</span>
           <strong className="tabular-nums">{formatUsd(analysis.summary.billBalance)}</strong>
         </div>
         <div className="flex justify-between border-l border-stone-200 px-4 py-3">
-          <span>EOB says you owe</span>
+          <span>{t.eobSays}</span>
           <strong className="tabular-nums">{formatUsd(analysis.summary.eobPatientResponsibility)}</strong>
         </div>
       </div>
@@ -100,6 +91,7 @@ export function SideBySide({ analysis, activeFlag }: { analysis: Analysis; activ
 }
 
 function EobCell({ e, flags }: { e: EobLine; flags: Flag[] }) {
+  const t = useMessages().sbs;
   return (
     <div className="space-y-1">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -107,19 +99,19 @@ function EobCell({ e, flags }: { e: EobLine; flags: Flag[] }) {
           <span className="mr-1 text-xs text-stone-400">{e.id}</span>
           {e.description}
         </span>
-        <span className="tabular-nums" title="Your responsibility">
+        <span className="tabular-nums" title={t.yourResp}>
           {formatUsd(e.patientResponsibility)}
         </span>
       </div>
       <div className="text-xs text-stone-500">
-        {e.code ?? "no code"} · billed {e.billedAmount != null ? formatUsd(e.billedAmount) : "—"} · allowed{" "}
-        {e.allowedAmount != null ? formatUsd(e.allowedAmount) : "—"} · {e.networkStatus === "in" ? "in-network" : e.networkStatus === "out" ? "out-of-network" : "network unknown"}
+        {e.code ?? t.noCode} · {t.billed} {e.billedAmount != null ? formatUsd(e.billedAmount) : "—"} · {t.allowed}{" "}
+        {e.allowedAmount != null ? formatUsd(e.allowedAmount) : "—"} · {t.network[e.networkStatus]}
       </div>
       {flags.length > 0 && (
         <div className="flex flex-wrap gap-1">
           {flags.map((f) => (
             <span key={f.id} className="rounded-full bg-white px-2 py-0.5 text-xs font-medium ring-1 ring-stone-300">
-              {RULE_SHORT[f.ruleId]}
+              {t.short[f.ruleId]}
             </span>
           ))}
         </div>

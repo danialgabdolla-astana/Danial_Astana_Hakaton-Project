@@ -76,6 +76,16 @@ async function pipe(bytes: Uint8Array, stream: CompressionStream | Decompression
   return out;
 }
 
+/** Why a link couldn't be opened; the UI shows `code` in the user's language. */
+export class CaseLinkError extends Error {
+  constructor(
+    message: string,
+    public code: "damaged" | "notCase",
+  ) {
+    super(message);
+  }
+}
+
 /** Bundle → URL-safe fragment (deflate + base64url). */
 export async function encodeCase(bundle: CaseBundle): Promise<string> {
   const json = new TextEncoder().encode(JSON.stringify(CaseBundle.parse(bundle)));
@@ -85,16 +95,16 @@ export async function encodeCase(bundle: CaseBundle): Promise<string> {
 /** Fragment → validated bundle. Throws a friendly error if the link is damaged or not ours. */
 export async function decodeCase(fragment: string): Promise<CaseBundle> {
   const data = fragment.replace(/^#/, "").trim();
-  if (!data || data.length > MAX_FRAGMENT || !/^[A-Za-z0-9_-]+$/.test(data)) throw new Error("This link is incomplete or damaged.");
+  if (!data || data.length > MAX_FRAGMENT || !/^[A-Za-z0-9_-]+$/.test(data)) throw new CaseLinkError("This link is incomplete or damaged.", "damaged");
   let parsed: unknown;
   try {
     const bytes = await pipe(fromBase64Url(data), new DecompressionStream("deflate-raw"), MAX_JSON);
     parsed = JSON.parse(new TextDecoder().decode(bytes));
   } catch {
-    throw new Error("This link is incomplete or damaged. Try copying it again.");
+    throw new CaseLinkError("This link is incomplete or damaged. Try copying it again.", "damaged");
   }
   const result = CaseBundle.safeParse(parsed);
-  if (!result.success) throw new Error("This link isn't a BillCheck case link.");
+  if (!result.success) throw new CaseLinkError("This link isn't a BillCheck case link.", "notCase");
   return result.data;
 }
 
