@@ -73,7 +73,6 @@ export function ResultsView() {
       : bd.mode === "claim"
         ? m.results.breakdownClaim(formatUsd(bd.total), m.results.reasons[bd.counted[0].ruleId])
         : null;
-  const counted = flags.filter((f) => f.confidence !== "low" && f.amountAtStake > 0);
 
   return (
     <main className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-6">

@@ -1,0 +1,77 @@
+{
+ "billingLetter": "[Your name]\n[Your address]\n[Phone] | [Email]\n\n[Date]\n\nRiverside General Hospital\nBilling Office\n\nRe: Request to review my bill\nPatient: [Patient name]\nAccount number: [Account number]\nClaim number: [Claim number]\nStatement date: Oct 27, 2026 | Due date: Nov 26, 2026\nDate of service: Sep 14, 2026\n\nDear Billing Office,\n\nI received your statement dated Oct 27, 2026 showing a balance of $1,840.00. My insurer, Summit Health Plan, issued an Explanation of Benefits (EOB) that lists my responsibility as $1,195.00. The difference is $645.00. I would like to understand this difference and ask you to review the items below.\n\n1. Balance is higher than my EOB\nYour bill asks for $1,840.00. The EOB lists my responsibility as $1,195.00 for these in-network services on Sep 14, 2026:\n- CPT 99284, Emergency dept visit, level 4: $620.00\n- CPT 70450, CT head/brain w/o contrast: $480.00\n- CPT 12001, Simple repair of wound <=2.5 cm: $95.00\nPlease explain or correct the $645.00 difference.\n\n2. CT head/brain appears twice\nYour bill lists CPT 70450, CT head/brain w/o contrast, two times on Sep 14, 2026 (each billed at $2,100.00). The EOB shows this service processed once, with $480.00 as my responsibility. Please review whether the second line was billed in error. If so, please remove it. This accounts for $480.00 of the difference.\n\n3. Supplies and materials not on my EOB\nYour bill lists CPT 99070, Supplies and materials, on Sep 14, 2026 for $165.00. I could not find this charge on my EOB. Please tell me whether it was submitted to Summit Health Plan. If it was not, please submit it to my insurer or remove it from my balance until it has been processed.\n\n4. Question about separate billing of supplies\nCould you confirm whether CPT 99070, Supplies and materials ($165.00), should be billed separately from CPT 99284, Emergency dept visit, level 4, or whether it is already included in the visit or facility fee? If it is included, please remove it.\n\nItems 3 and 4 involve the same $165.00 charge. Together with item 2, items 2 and 3 add up to the $645.00 difference.\n\nPlease do the following:\n1. Correct or explain each item above.\n2. Send me an updated itemized bill that shows CPT/HCPCS codes for every charge.\n3. Place my account on hold and pause any collections activity while this review is open.\n4. Respond to me in writing at the address or email above.\n\nI want to pay what I properly owe once the account matches my insurer's EOB. I have also sent a copy of this request to Summit Health Plan. Thank you for your help.\n\nSincerely,\n[Your name]\n[Phone] | [Email]",
+ "insurerLetter": "[Your name]\n[Your address]\n[Phone] | [Email]\n\n[Date]\n\nSummit Health Plan\nClaims Review\n\nRe: Request to confirm claim processing\nPatient: [Patient name]\nClaim number: [Claim number]\nProvider: Riverside General Hospital\nDate of service: Sep 14, 2026\n\nDear Claims Review Team,\n\nI received an EOB for the services above that lists my responsibility as $1,195.00. The hospital's statement dated Oct 27, 2026 asks me for $1,840.00, which is $645.00 more. I have asked the hospital to review its bill.\n\nI would appreciate your help with these points:\n\n1. Could you confirm that the EOB total of $1,195.00 is my correct responsibility for this claim? It covers CPT 99284 ($620.00), CPT 70450 ($480.00) and CPT 12001 ($95.00).\n\n2. The hospital's bill lists CPT 70450, CT head/brain w/o contrast, twice. Your EOB shows it processed once. Could you confirm that only one CT head/brain service was received and processed for Sep 14, 2026?\n\n3. The hospital's bill also lists CPT 99070, Supplies and materials, for $165.00. I don't see it on my EOB. Could you tell me whether this charge was received? If it was, please tell me how it was processed.\n\n4. If any charge is resubmitted by the hospital, please send me a new EOB.\n\nPlease reply in writing at the address or email above. Thank you for your time.\n\nSincerely,\n[Your name]\n[Phone] | [Email]",
+ "phoneScript": {
+  "opening": "Hi, my name is [Your name]. I'm calling about account [Account number] for [Patient name], for services on Sep 14, 2026. Your statement dated Oct 27, 2026 shows $1,840.00, but my insurer's EOB says my responsibility is $1,195.00. I'd like to go through the difference with you, and I'd like to take notes as we talk.",
+  "asks": [
+   "Your statement says $1,840.00, but my EOB from Summit Health Plan says I owe $1,195.00. Can you explain or correct the $645.00 difference?",
+   "CPT 70450, CT head/brain w/o contrast, is on my bill twice for Sep 14, 2026. My EOB shows it processed once. Can you review the second charge and remove it if it was billed in error? That is $480.00 of the difference.",
+   "CPT 99070, Supplies and materials, for $165.00 isn't on my EOB. Was it submitted to Summit Health Plan? If not, can you submit it or remove it from my balance until it's processed?",
+   "Could you confirm whether CPT 99070 Supplies and materials should be billed separately from CPT 99284, the level 4 emergency visit, or whether it's already included in the visit or facility fee?",
+   "Please send me an updated itemized bill with CPT/HCPCS codes for every charge.",
+   "Please put my account on hold while the dispute is open, so it doesn't go to collections.",
+   "Please send me your response in writing. Can you tell me where and when I should expect it?"
+  ],
+  "ifTheyPushBack": [
+   "If they say the balance is correct: \"I understand. My EOB lists $1,195.00 as my responsibility. Can you show me which charges make up the extra $645.00?\"",
+   "If they say the CT was done twice: \"Could you check the records to see whether it was ordered and performed twice? My insurer's EOB shows it processed once. Can you note the account as under review?\"",
+   "If they say the supplies charge is separate: \"Could you check whether it's normally included in the visit or facility fee? And can you tell me whether it was sent to my insurer?\"",
+   "If they say to pay now and sort it out later: \"I'm happy to pay what I owe once the account matches my EOB. Until the review is finished, can you please put the account on hold?\"",
+   "If they say they can't put a hold on the account: \"Could you note in the account that it's under dispute? Then I'd like to speak with a supervisor about a hold.\"",
+   "If they say they need to call back: \"Thank you. Could I get your name, a reference number, and a date when I can expect to hear back?\""
+  ],
+  "escalation": [
+   "Could I please speak with a supervisor about this account?",
+   "Is there a billing manager or patient advocate I can speak with about this dispute?",
+   "Could you transfer me to the patient financial services department?",
+   "Could you please note in the account that I asked for a supervisor review?"
+  ],
+  "writeDown": [
+   "Date and time of the call",
+   "Name and title of each person you speak with",
+   "Reference or call number",
+   "What they agreed to correct, remove or review",
+   "Whether the account was placed on hold, and the date the hold starts",
+   "Whether the $480.00 duplicate CT charge will be removed",
+   "Whether the $165.00 supplies charge will be submitted to insurance, bundled or removed",
+   "The new balance they quote",
+   "When you will get the updated itemized bill and the written response",
+   "Any promised follow-up date and who will call"
+  ]
+ },
+ "deadlines": [
+  {
+   "key": "callBilling",
+   "title": "Call the billing office",
+   "detail": "Ask them to put the account on hold while the review is open, so it doesn't go to collections.",
+   "daysFromNow": 0
+  },
+  {
+   "key": "sendLetter",
+   "title": "Mail or upload the dispute letter",
+   "detail": "Keep a copy and note the date you sent it.",
+   "daysFromNow": 1
+  },
+  {
+   "key": "followUp",
+   "title": "Follow up if you haven't heard back",
+   "detail": "Call again and reference your first call and your letter.",
+   "daysFromNow": 30
+  },
+  {
+   "key": "dueDate",
+   "vars": {
+    "date": "2026-11-26"
+   },
+   "title": "Bill due date on the statement: Nov 26, 2026",
+   "detail": "Ask for the due date to be extended while the bill is under review.",
+   "daysFromNow": null
+  },
+  {
+   "key": "appeal",
+   "title": "Insurer appeal window",
+   "detail": "For most job-based plans you can file an internal appeal with your insurer within 180 days of the EOB/denial notice.",
+   "daysFromNow": null
+  }
+ ]
+}

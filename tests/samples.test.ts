@@ -24,3 +24,14 @@ describe("precomputed sample results", () => {
     expect(isSampleCase({ ...sampleBill, patientBalance: 1841 }, [sampleEob])).toBe(false);
   });
 });
+
+describe("saved sample dispute packs", () => {
+  for (const kind of ["er", "anesthesia"] as const) {
+    it(`${kind}: is a valid pack with US dates and the account-hold ask`, async () => {
+      const { StoredPack } = await import("@/lib/schemas");
+      const pack = StoredPack.parse(JSON.parse(readFileSync(`public/samples/${kind}.pack.json`, "utf8")));
+      expect(pack.billingLetter).not.toMatch(/\d{4}-\d{2}-\d{2}/);
+      expect(pack.phoneScript.asks.some((a) => /on hold/i.test(a))).toBe(true);
+    });
+  }
+});

@@ -1,0 +1,79 @@
+{
+ "billingLetter": "[Your name]\n[Your address]\n[Phone] | [Email]\n\n[Date]\n\nLakeshore Anesthesia Associates\nAttn: Billing Office\n\nRe: Request to review and correct my bill\nPatient: [Patient name]\nAccount number: [Account number]\nClaim number: [Claim number]\nStatement date: Oct 9, 2026 (due date shown: Nov 8, 2026)\n\nDear Billing Office,\n\nI received your statement dated Oct 9, 2026 showing a balance of $2,760.00. This does not match the Explanation of Benefits (EOB) from my insurer, Summit Health Plan. I am writing to ask you to review the account and explain or correct the difference.\n\nIssue 1: Bill is higher than my EOB says I owe\nYour bill lists one service: Aug 22, 2026, CPT 00840, \"Anesthesia, intraperitoneal procedure, lower abdomen (laparoscopic appendectomy),\" billed at $3,600.00. Your statement shows insurance paid $840.00 and adjustments of $0.00, leaving $2,760.00.\n\nMy EOB for the same date and code shows:\n- Billed amount: $3,600.00\n- Allowed amount: $1,400.00\n- Plan paid: $840.00\n- Coinsurance: $560.00\n- Patient responsibility: $560.00\n\nThe difference between your balance and my EOB amount is $2,200.00. Please explain what this $2,200.00 is for, or correct the balance.\n\nIssue 2: Out-of-network status of the anesthesia\nMy EOB marks this service (Aug 22, 2026, CPT 00840) as out-of-network, with remark code OON2. Could you confirm whether this anesthesia was provided at an in-network hospital or surgery center? If it was, could you confirm whether the federal No Surprises Act limits what I can be billed to in-network cost-sharing? If so, please adjust my balance to match.\n\nWhat I am asking you to do:\n1. Correct or explain each issue above in writing.\n2. Send me an updated itemized bill that includes CPT/HCPCS codes, charges, payments, and adjustments.\n3. Place my account on hold and pause any collections activity while this review is open.\n4. Respond to me in writing at the address or email above.\n\nI am not refusing to pay what I properly owe. I would like to make sure the amount is correct first. Thank you for your help.\n\nSincerely,\n[Your name]\n[Phone] | [Email]\n\nEnclosed: copy of Summit Health Plan EOB; copy of statement dated Oct 9, 2026",
+ "insurerLetter": "[Your name]\n[Your address]\n[Phone] | [Email]\n\n[Date]\n\nSummit Health Plan\nAttn: Claims Review / Appeals\n\nRe: Request to review claim processing\nMember: [Patient name]\nClaim number: [Claim number]\nProvider: Lakeshore Anesthesia Associates\nDate of service: Aug 22, 2026\n\nDear Claims Review Team,\n\nI am asking for a review of the claim for anesthesia on Aug 22, 2026, CPT 00840, \"Anesthesia, intraperitoneal procedure, lower abdomen.\"\n\nYour EOB shows a billed amount of $3,600.00, an allowed amount of $1,400.00, a plan payment of $840.00, and my responsibility of $560.00 in coinsurance. The line is marked out-of-network (remark code OON2).\n\nThe provider has billed me $2,760.00, which is $2,200.00 more than my EOB responsibility.\n\nCould you please:\n1. Confirm whether the facility where this service took place was in-network on Aug 22, 2026.\n2. Confirm whether the anesthesia was correctly processed as out-of-network. If the facility was in-network, could you confirm whether the federal No Surprises Act applies and whether the claim should be reprocessed with in-network cost-sharing?\n3. Confirm in writing that $560.00 is my total responsibility for this claim, or send a corrected EOB if it changes.\n4. Tell me whether you have given the provider any information that explains the higher balance.\n\nPlease respond in writing. Thank you for your help.\n\nSincerely,\n[Your name]\n[Phone] | [Email]\n\nEnclosed: copy of EOB; copy of provider statement dated Oct 9, 2026",
+ "phoneScript": {
+  "opening": "Hi, my name is [Your name]. I'm calling about account [Account number] for [Patient name]. My statement dated Oct 9, 2026 says I owe $2,760.00, but my insurance EOB says my share is $560.00. I'd like to ask for a review of the difference.",
+  "asks": [
+   "My bill for Aug 22, 2026, CPT 00840 anesthesia, shows $2,760.00. My EOB from Summit Health Plan says I owe $560.00. Can you explain the $2,200.00 difference, or correct the balance?",
+   "My EOB marks this anesthesia as out-of-network. Can you confirm whether it was given at an in-network hospital or surgery center? If it was, can you confirm whether the balance should be limited to in-network cost-sharing under the No Surprises Act?",
+   "Please send me an updated itemized bill with CPT/HCPCS codes, payments, and adjustments.",
+   "Please put my account on hold while the dispute is open, so it doesn't go to collections.",
+   "Please send your response to me in writing. Can you confirm the address or email you have for me?",
+   "Can I get a reference number for this call, and your name?"
+  ],
+  "ifTheyPushBack": [
+   "If they say 'You were billed the full amount because we're out-of-network': I understand. Could you check whether the facility was in-network and whether the balance billing rules apply to anesthesia in that case? I'd like the answer in writing.",
+   "If they say 'Insurance only paid what they paid, the rest is yours': My EOB lists my responsibility as $560.00. Can you show me in writing how the other $2,200.00 is allowed?",
+   "If they say 'The balance is due Nov 8, 2026': I'm not refusing to pay what I owe. I'm asking for a review first, so please hold the account while it's open.",
+   "If they say 'Call your insurance': I'm also contacting them. Meanwhile, I'd like the account on hold and an itemized bill sent to me.",
+   "If they say they can't put a hold on it: Could you note in the account that it is in dispute, and tell me who can approve a hold?"
+  ],
+  "escalation": [
+   "Could I please speak with a supervisor?",
+   "Could you connect me with a billing manager who can review a disputed balance?",
+   "Does your organization have a patient advocate or patient financial services team I can speak with?",
+   "Can you tell me how to file a formal written dispute or appeal with your office?"
+  ],
+  "writeDown": [
+   "Date and time of the call",
+   "Name and title of each person you spoke with",
+   "Reference or call number",
+   "What they agreed to do and by when",
+   "Whether the account was placed on hold, and the date",
+   "Whether the facility was in-network, if they told you",
+   "Whether they will send an itemized bill and a written response, and where",
+   "Any explanation they give for the $2,200.00 difference"
+  ]
+ },
+ "deadlines": [
+  {
+   "key": "callBilling",
+   "title": "Call the billing office",
+   "detail": "Ask them to put the account on hold while the review is open, so it doesn't go to collections.",
+   "daysFromNow": 0
+  },
+  {
+   "key": "sendLetter",
+   "title": "Mail or upload the dispute letter",
+   "detail": "Keep a copy and note the date you sent it.",
+   "daysFromNow": 1
+  },
+  {
+   "key": "followUp",
+   "title": "Follow up if you haven't heard back",
+   "detail": "Call again and reference your first call and your letter.",
+   "daysFromNow": 30
+  },
+  {
+   "key": "dueDate",
+   "vars": {
+    "date": "2026-11-08"
+   },
+   "title": "Bill due date on the statement: Nov 8, 2026",
+   "detail": "Ask for the due date to be extended while the bill is under review.",
+   "daysFromNow": null
+  },
+  {
+   "key": "appeal",
+   "title": "Insurer appeal window",
+   "detail": "For most job-based plans you can file an internal appeal with your insurer within 180 days of the EOB/denial notice.",
+   "daysFromNow": null
+  },
+  {
+   "key": "nsa",
+   "title": "No Surprises Act help",
+   "detail": "Questions or complaints: cms.gov/nosurprises or 1-800-985-3059.",
+   "daysFromNow": null
+  }
+ ]
+}

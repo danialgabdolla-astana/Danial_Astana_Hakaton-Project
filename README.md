@@ -90,7 +90,7 @@ Expected and tested: `DUPLICATE_CHARGE` $480 (high) + `LINE_NOT_ON_EOB` $165 (me
 
 **2. Surprise anesthesia bill** (`/check?sample=2`). Laparoscopic appendectomy at an in-network hospital; the anesthesia group "Lakeshore Anesthesia Associates" is out-of-network. The insurer applied 40% out-of-network coinsurance ($560) and the group bills $2,760. Expected and tested: `BILL_EXCEEDS_EOB` $2,200 (high) + `POSSIBLE_SURPRISE_BILL` (low; $280 at medium confidence when the user enters 20% in-network coinsurance) → **disputable total $2,200**.
 
-The live demo sends the real PDFs through the real pipeline — no canned results.
+**How the demo runs.** "Try a sample bill" loads the sample's precomputed result (`public/samples/*.analysis.json`, written by `npm run samples` with the same rules engine; `tests/samples.test.ts` fails if they drift), so the demo works even if the AI service is slow. The dispute packs for the two samples (`public/samples/*.pack.json`) were written by the live letter model and saved. Samples are unlocked for free; the server checks the documents really are the samples. "Run the ER sample live" sends the real PDFs through the full AI + rules pipeline.
 
 ## Code map
 
