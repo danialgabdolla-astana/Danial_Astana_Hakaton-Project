@@ -3,7 +3,7 @@ import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 /**
  * Unlock tokens prove that a Stripe payment was verified by our server.
  * Format: base64url(JSON payload) + "." + base64url(HMAC-SHA256(payload, UNLOCK_SECRET)).
- * scope is either an analysisId (one bill, $19) or "family" (annual plan, all bills).
+ * scope is either an analysisId (one bill) or "family" (annual plan, all bills).
  */
 export type UnlockPayload = { scope: string; plan: "single" | "family"; exp: number; nonce: string };
 

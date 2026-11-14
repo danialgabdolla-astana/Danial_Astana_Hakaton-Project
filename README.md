@@ -1,7 +1,7 @@
 # BillCheck
 
 **Check a US medical bill against your insurer's EOB in about 2 minutes, see what you can dispute, and get a ready-to-send letter, a phone script and deadlines.**
-$19 per bill. No percentage of savings. No insurance or bank login.
+$20 per bill at launch (regular $25). No percentage of savings. No insurance or bank login.
 
 Business Cup 2.0 · Track 01 — MONEY · B2C web app for working adults in the US (25–45).
 
@@ -27,7 +27,7 @@ Persona: *Jessica, 34, marketer in Ohio, HDHP through work, two kids. Her son's 
 2. **AI extracts** every line into strict JSON (Claude vision; validated with zod, one automatic retry). Names, member IDs and account numbers are masked.
 3. **A deterministic rules engine** matches bill lines to EOB lines and applies 8 rules.
 4. **Free results:** side-by-side bill vs. EOB with highlighted mismatches, every issue with confidence + source, and the amount you can dispute.
-5. **$19 unlock (Stripe Checkout, test mode):** dispute letter to the billing office, insurer review request when relevant, phone script with escalation phrases, deadlines.
+5. **$20 unlock (Stripe Checkout, test mode):** dispute letter to the billing office, insurer review request when relevant, phone script with escalation phrases, deadlines.
 6. **Your details, locally:** the letter's `[Your name]`, `[Account number]`… placeholders are filled in the browser and never sent to the server.
 7. **Dispute tracker** (no login, localStorage): status, call log, follow-up date with calendar (.ics) export, "You've saved $X", JSON export/import.
 8. **English, Spanish and French:** a language picker in the header (English by default, saved in the browser). Flags, deadlines and server errors carry stable keys and parameters, so the whole flow is translated, while the dispute letter and phone script stay in English for US billing offices. Stripe Checkout opens in the same language.
@@ -109,7 +109,7 @@ Expected and tested: `DUPLICATE_CHARGE` $480 (high) + `LINE_NOT_ON_EOB` $165 (me
 
 ## Payments
 
-Stripe Checkout in **test mode** with inline `price_data` (no dashboard setup): "Fix this bill" $19 one-time, "Family plan" $59/year subscription. After the redirect, `/api/verify` asks Stripe whether the session is paid and returns a signed unlock token. Test card: **4242 4242 4242 4242**, any future date, any CVC, any ZIP. Without `STRIPE_SECRET_KEY` the paywall shows a setup error and never unlocks.
+Stripe Checkout in **test mode** with inline `price_data` (no dashboard setup): "Fix this bill" $20 one-time (launch price, regular $25), "Family plan" $60/year subscription (launch price, regular $120). After the redirect, `/api/verify` asks Stripe whether the session is paid and returns a signed unlock token. Test card: **4242 4242 4242 4242**, any future date, any CVC, any ZIP. Without `STRIPE_SECRET_KEY` the paywall shows a setup error and never unlocks.
 
 ## Privacy
 

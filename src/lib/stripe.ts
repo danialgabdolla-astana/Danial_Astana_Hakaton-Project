@@ -1,5 +1,6 @@
 import Stripe from "stripe";
 import { UserError } from "./anthropic";
+import { PRICES } from "./pricing";
 
 let client: Stripe | null = null;
 
@@ -12,8 +13,16 @@ export function stripe(): Stripe {
 }
 
 export const PLANS = {
-  single: { name: "BillCheck — Fix this bill", amount: 1900, description: "Dispute letter, phone script, deadlines and tracker for one bill." },
-  family: { name: "BillCheck — Family plan", amount: 5900, description: "Unlimited bills for one household for a year." },
+  single: {
+    name: "BillCheck — Fix this bill (launch price, 20% off)",
+    amount: PRICES.single.launch,
+    description: "Dispute letter, phone script, deadlines and tracker for one bill.",
+  },
+  family: {
+    name: "BillCheck — Family plan (launch price, 50% off)",
+    amount: PRICES.family.launch,
+    description: "Unlimited bills for one household for a year.",
+  },
 } as const;
 export type Plan = keyof typeof PLANS;
 

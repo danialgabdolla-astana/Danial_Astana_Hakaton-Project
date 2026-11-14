@@ -4,7 +4,7 @@ import "./globals.css";
 
 const TITLE = "BillCheck — check your medical bill against your EOB";
 const DESCRIPTION =
-  "Upload your medical bill and your insurer's EOB. BillCheck finds what you can dispute and gives you a ready-to-send letter, a phone script and deadlines. $19 per bill.";
+  "Upload your medical bill and your insurer's EOB. BillCheck finds what you can dispute and gives you a ready-to-send letter, a phone script and deadlines. $20 per bill at launch.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://mybillcheck.vercel.app"),

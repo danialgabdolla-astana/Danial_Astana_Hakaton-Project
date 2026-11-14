@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMessages } from "@/lib/i18n/client";
+import { discountPct } from "@/lib/pricing";
 
 export function Landing() {
   const m = useMessages();
@@ -119,8 +120,8 @@ export function Landing() {
           </h2>
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             <Price {...L.plans.free} cta={L.ctaFree} />
-            <Price {...L.plans.single} cta={L.ctaFree} highlight />
-            <Price {...L.plans.family} cta={L.ctaFamily} />
+            <Price {...L.plans.single} cta={L.ctaFree} badge={L.launchBadge(discountPct("single"))} highlight />
+            <Price {...L.plans.family} cta={L.ctaFamily} badge={L.launchBadge(discountPct("family"))} />
           </div>
           <h3 className="mt-12 font-semibold">{L.compareTitle}</h3>
           <div className="mt-3 overflow-x-auto">
@@ -179,11 +180,33 @@ export function Landing() {
   );
 }
 
-function Price({ name, price, note, items, highlight, cta }: { name: string; price: string; note?: string; items: string[]; highlight?: boolean; cta: string }) {
+function Price({
+  name,
+  price,
+  regular,
+  note,
+  items,
+  highlight,
+  cta,
+  badge,
+}: {
+  name: string;
+  price: string;
+  regular?: string;
+  note?: string;
+  items: string[];
+  highlight?: boolean;
+  cta: string;
+  badge?: string;
+}) {
   return (
     <div className={`flex flex-col rounded-2xl border p-6 ${highlight ? "border-teal-600 ring-2 ring-teal-600/20" : "border-stone-200"}`}>
-      <div className="font-medium">{name}</div>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="font-medium">{name}</span>
+        {badge && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900">{badge}</span>}
+      </div>
       <div className="mt-2 text-4xl font-semibold">
+        {regular && <s className="mr-2 text-2xl font-normal text-stone-400">{regular}</s>}
         {price}
         {note && <span className="ml-1 text-base font-normal text-stone-500">{note}</span>}
       </div>
