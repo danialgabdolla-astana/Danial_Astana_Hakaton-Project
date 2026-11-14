@@ -141,7 +141,10 @@ Limits: Vercel accepts request bodies up to ~4.5 MB, so uploads are capped at ~4
 
 ## Team
 
-_Names and roles here._
+| Name | Role |
+|---|---|
+| Ruslan | Idea and concept |
+| Danial | Product development |
 
 ## License
 
