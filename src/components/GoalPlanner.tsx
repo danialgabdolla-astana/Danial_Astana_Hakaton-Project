@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { DEFAULT_RATE_30Y, RATE_SOURCE, addMonths, monthsToGoal, mortgage, usd } from "@/lib/finance";
+import { DEFAULT_RATE_30Y, RATE_SOURCE, addMonths, affordablePrice, monthsToGoal, mortgage, usd } from "@/lib/finance";
 
 type Props = { monthlySavingNow: number; freed: number; monthlyIncome: number; rent: number };
 
 export function GoalPlanner({ monthlySavingNow, freed, monthlyIncome, rent }: Props) {
-  const [price, setPrice] = useState(350000);
+  const [price, setPrice] = useState(300000);
   const [downPct, setDownPct] = useState(10);
   const [saved, setSaved] = useState(2600);
   const [savingNow, setSavingNow] = useState(Math.round(monthlySavingNow));
@@ -26,6 +26,8 @@ export function GoalPlanner({ monthlySavingNow, freed, monthlyIncome, rent }: Pr
 
   const m = mortgage({ homePrice: price, downPct, ratePct: rate, years, taxRatePct: taxPct, insuranceYearly: insurance });
   const dti = monthlyIncome > 0 ? (m.total / monthlyIncome) * 100 : 0;
+  // ~28% of gross income is roughly 36% of take-home pay
+  const comfy = affordablePrice(monthlyIncome, 0.36, { downPct, ratePct: rate, years, taxRatePct: taxPct, insuranceYearly: insurance });
 
   return (
     <section className="grid gap-6 lg:grid-cols-2">
@@ -106,11 +108,23 @@ export function GoalPlanner({ monthlySavingNow, freed, monthlyIncome, rent }: Pr
           {monthlyIncome > 0 && (
             <p className={`mt-4 text-sm ${dti <= 28 ? "text-emerald-700" : dti <= 36 ? "text-amber-700" : "text-red-700"}`}>
               That&apos;s {dti.toFixed(0)}% of your take-home pay
-              {dti <= 28 ? " — comfortable." : dti <= 36 ? " — tight; try a lower price or more down." : " — too high for this price."}
+              {dti <= 36 ? " — comfortable." : dti <= 43 ? " — tight; lenders may still approve, but budget carefully." : " — too high for this price."}
             </p>
           )}
+          {monthlyIncome > 0 && comfy > 0 && (
+            <div className="mt-3 flex items-center justify-between gap-3 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm">
+              <span>
+                Comfortable price for your income: <b>{usd(comfy)}</b>
+              </span>
+              {Math.abs(comfy - price) > 1000 && (
+                <button onClick={() => setPrice(comfy)} className="shrink-0 font-medium text-emerald-700 hover:underline">
+                  Use this price
+                </button>
+              )}
+            </div>
+          )}
           {rent > 0 && (
-            <p className="mt-1 text-sm text-stone-600">
+            <p className="mt-2 text-sm text-stone-600">
               You pay {usd(rent)} in rent today ({m.total > rent ? `+${usd(m.total - rent)}` : `${usd(m.total - rent)}`}/mo vs. owning).
             </p>
           )}

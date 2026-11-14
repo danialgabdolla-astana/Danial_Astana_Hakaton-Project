@@ -42,6 +42,19 @@ export function mortgage(i: MortgageInput): MortgageOutput {
   };
 }
 
+/** Highest home price whose full monthly payment fits within `share` of monthly take-home pay. */
+export function affordablePrice(monthlyIncome: number, share: number, i: Omit<MortgageInput, "homePrice">): number {
+  const budget = monthlyIncome * share - i.insuranceYearly / 12;
+  if (budget <= 0) return 0;
+  const d = i.downPct / 100;
+  const r = i.ratePct / 100 / 12;
+  const n = i.years * 12;
+  const piPerLoanDollar = r === 0 ? 1 / n : r / (1 - Math.pow(1 + r, -n));
+  const pmiPerLoanDollar = i.downPct < 20 ? 0.0075 / 12 : 0;
+  const perPriceDollar = (1 - d) * (piPerLoanDollar + pmiPerLoanDollar) + i.taxRatePct / 100 / 12;
+  return Math.floor(budget / perPriceDollar / 1000) * 1000;
+}
+
 export type GoalInput = {
   target: number;
   saved: number;

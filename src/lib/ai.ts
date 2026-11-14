@@ -116,11 +116,14 @@ function sanitize(raw: unknown, req: AnalysisRequest, source: AnalysisResult["so
 
 export async function analyze(req: AnalysisRequest): Promise<AnalysisResult> {
   const prompt = buildPrompt(req);
+  let note = "No AI key configured";
   try {
     if (process.env.ANTHROPIC_API_KEY) return sanitize(extractJson(await callClaude(prompt)), req, "claude");
     if (process.env.GEMINI_API_KEY) return sanitize(extractJson(await callGemini(prompt)), req, "gemini");
   } catch (err) {
     console.error("AI analysis failed, falling back to rules:", err);
+    note = "AI call failed: " + String((err as Error)?.message ?? err).replace(/sk-[\w-]+/g, "***").slice(0, 160);
   }
-  return rulesAnalysis(req);
+  const r = rulesAnalysis(req);
+  return { ...r, note };
 }

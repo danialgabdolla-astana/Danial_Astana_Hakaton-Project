@@ -220,6 +220,7 @@ export default function App() {
               <p className="text-stone-700">{result.summary}</p>
               <p className="mt-2 text-xs text-stone-400">
                 Based on {data.txns.length} transactions over {data.months} months.
+                {result.note ? ` (${result.note})` : ""}
               </p>
             </div>
           )}

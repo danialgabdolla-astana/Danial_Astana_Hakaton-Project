@@ -86,4 +86,5 @@ export type AnalysisResult = {
   categories: Record<string, Category>; // merchant -> category
   leaks: Leak[];
   summary: string;
+  note?: string; // why AI was not used (debug)
 };
