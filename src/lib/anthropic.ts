@@ -38,7 +38,20 @@ function toBlocks(docs: DocInput[]): ContentBlock[] {
   });
 }
 
-/** Calls the model with a forced tool, validates with zod, and retries once with the validation errors. */
+/** Fallback: some models answer with a JSON object in text instead of calling the tool. */
+export function jsonFromText(content: Anthropic.Messages.ContentBlock[]): unknown {
+  const text = content.map((c) => (c.type === "text" ? c.text : "")).join("");
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+  if (start < 0 || end <= start) return {};
+  try {
+    return JSON.parse(text.slice(start, end + 1));
+  } catch {
+    return {};
+  }
+}
+
+/** Calls the model with a tool, validates with zod, and retries once with the validation errors. */
 async function extractWithTool<T>(
   system: string,
   tool: typeof BILL_TOOL | typeof EOB_TOOL,
@@ -57,7 +70,8 @@ async function extractWithTool<T>(
         max_tokens: 8000,
         system,
         tools: [tool],
-        tool_choice: { type: "tool", name: tool.name },
+        // Forced tool_choice isn't supported by every model, so we ask for the tool and accept JSON text as a fallback.
+        tool_choice: { type: "auto" },
         messages,
       });
     } catch (err) {
@@ -75,7 +89,7 @@ async function extractWithTool<T>(
       throw new UserError(`Reading the document failed (${status ?? (err as Error).name}${status === 400 ? `: ${detail}` : ""}). Please try again.`, 502);
     }
     const call = res.content.find((c) => c.type === "tool_use");
-    const input = (call?.type === "tool_use" ? call.input : {}) as Record<string, unknown>;
+    const input = (call?.type === "tool_use" ? call.input : jsonFromText(res.content)) as Record<string, unknown>;
 
     if (input.readable === false) {
       throw new UserError(
@@ -87,6 +101,11 @@ async function extractWithTool<T>(
     const parsed = schema.safeParse(input);
     if (parsed.success) return parsed.data;
 
+    if (attempt === 0 && !call) {
+      messages.push({ role: "assistant", content: res.content });
+      messages.push({ role: "user", content: `Please call the ${tool.name} tool now with the extracted data.${parsed.success ? "" : `\nProblems to fix:\n${z.prettifyError(parsed.error)}`}` });
+      continue;
+    }
     if (attempt === 0 && call) {
       messages.push({ role: "assistant", content: res.content });
       messages.push({
@@ -118,11 +137,11 @@ const EobToolResult = z.object({
 });
 
 export async function extractBill(docs: DocInput[]): Promise<BillDoc> {
-  const r = await extractWithTool(BILL_SYSTEM, BILL_TOOL, docs, "Extract this medical bill with the record_bill tool.", BillToolResult, "bill");
+  const r = await extractWithTool(BILL_SYSTEM, BILL_TOOL, docs, "Extract this medical bill. Respond only by calling the record_bill tool.", BillToolResult, "bill");
   return { ...r, lines: r.lines.map((l, i) => ({ ...l, id: `B${i + 1}` })) };
 }
 
 export async function extractEobs(docs: DocInput[]): Promise<EobDoc[]> {
-  const r = await extractWithTool(EOB_SYSTEM, EOB_TOOL, docs, "Extract this Explanation of Benefits with the record_eobs tool.", EobToolResult, "EOB");
+  const r = await extractWithTool(EOB_SYSTEM, EOB_TOOL, docs, "Extract this Explanation of Benefits. Respond only by calling the record_eobs tool.", EobToolResult, "EOB");
   return r.eobs.map((e) => ({ ...e, lines: e.lines.map((l, i) => ({ ...l, id: `E${i + 1}` })) }));
 }

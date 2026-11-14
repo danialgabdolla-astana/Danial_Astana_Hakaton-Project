@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { anthropic, MODEL, UserError } from "./anthropic";
+import { anthropic, jsonFromText, MODEL, UserError } from "./anthropic";
 import { LETTER_SYSTEM, LETTER_TOOL } from "./prompts/letter";
 import type { BillDoc, EobDoc, Flag, Summary } from "./schemas";
 
@@ -63,7 +63,7 @@ export async function writeDisputePack(bill: BillDoc, eobs: EobDoc[], flags: Fla
         max_tokens: 6000,
         system: LETTER_SYSTEM,
         tools: [LETTER_TOOL],
-        tool_choice: { type: "tool", name: LETTER_TOOL.name },
+        tool_choice: { type: "auto" },
         messages,
       });
     } catch (err) {
@@ -72,9 +72,12 @@ export async function writeDisputePack(bill: BillDoc, eobs: EobDoc[], flags: Fla
       throw new UserError("Writing your letter took too long. Please try again.", 502);
     }
     const call = res.content.find((c) => c.type === "tool_use");
-    const parsed = DisputePack.safeParse(call?.type === "tool_use" ? call.input : {});
+    const parsed = DisputePack.safeParse(call?.type === "tool_use" ? call.input : jsonFromText(res.content));
     if (parsed.success) return { ...parsed.data, deadlines: deadlinesFor(flags, bill) };
-    if (attempt === 0 && call?.type === "tool_use") {
+    if (attempt === 0 && call?.type !== "tool_use") {
+      messages.push({ role: "assistant", content: res.content });
+      messages.push({ role: "user", content: `Please call the ${LETTER_TOOL.name} tool now.` });
+    } else if (attempt === 0 && call?.type === "tool_use") {
       messages.push({ role: "assistant", content: res.content });
       messages.push({
         role: "user",
